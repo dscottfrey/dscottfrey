@@ -5,7 +5,7 @@ I use this profile page as a simple project index because GitHub does not suppor
 ## VanAssistant
 Work related to the van Home Assistant system.
 
-- [VanAssistant-ReTerminal-e1002]([https://github.com/dscoffrey/VanAssistant-ReTerminal-e1002](https://github.com/dscottfrey/VanAssistant-ReTerminal-e1002)) — ESPHome config and related work.
+- [VanAssistant-ReTerminal-e1002](https://github.com/dscoffrey/VanAssistant-ReTerminal-e1002) — ESPHome config and related work.
 - [HA-Dashboard-cards](https://github.com/dscoffrey/HA-Dashboard-cards) — dashboard code and UI pieces.
 - [Atomic-Tilty](https://github.com/dscoffrey/Atomic-Tilty) — tilty-related files and experiments.
 
