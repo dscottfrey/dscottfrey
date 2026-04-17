@@ -19,7 +19,7 @@ At the start of every chat, read HANDOFF.md, DECISIONS.md, and CLAUDE.md in the 
 
 Follow the session conventions in /Users/scott/Documents/Code/README.md.
 
-At the end of every chat — when I say "wrap up," "we're done," or anything similar — update HANDOFF.md with the new current state and next steps, and append a dated entry to DECISIONS.md if any meaningful architectural choice was made. For GitHub-tracked projects, stage and commit the changes (but never push without my go-ahead). If I seem to be winding down without saying so, remind me.
+At the end of every chat — when I say "wrap up," "we're done," or anything similar — update HANDOFF.md with the new current state and next steps, and append a dated entry to DECISIONS.md if any meaningful architectural choice was made. For GitHub-tracked projects, list the files that changed and suggest a commit message, then stop — I commit and push using the GitHub Desktop app, not the terminal. Do not run git commands from bash/CLI. If I seem to be winding down without saying so, remind me.
 ```
 
 Put this in the project instructions **once**. It applies to every chat in the project forever.
@@ -77,8 +77,8 @@ When you say any of *"we're done,"* *"wrap up,"* *"let's stop here,"* or similar
 1. Update `HANDOFF.md` with the new current state, what was completed this session, and the next 1–3 steps.
 2. Append a dated entry to `DECISIONS.md` if any meaningful architectural decision was made, using the format in `Code/README.md`.
 3. Optionally archive the previous HANDOFF into `sessions/HANDOFF-YYYY-MM-DD.md` before overwriting.
-4. For GitHub-tracked projects: stage and commit the changes with a concise message (e.g. `feat: add login flow + update handoff`). **Never push without explicit go-ahead** — you review first.
-5. For local-only projects (e.g. IcarusVirtualHub): just the file updates, no git commands.
+4. For GitHub-tracked projects: list the changed files, suggest a concise commit message (e.g. `feat: add login flow + update handoff`), then **stop**. I commit and push using **GitHub Desktop**, not the terminal — Claude should not run `git` commands from bash/CLI.
+5. For local-only projects (e.g. IcarusVirtualHub): just the file updates, no git involvement at all.
 
 If Claude doesn't offer this as the session winds down, prompt it.
 
