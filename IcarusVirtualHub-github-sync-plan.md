@@ -9,66 +9,68 @@
 
 ## Overview
 
-This document captures the one-time setup required to get `IcarusVirtualHub` under version control on GitHub and accessible from a second machine. After completing this plan the project will live at `github.com/dscottfrey/IcarusVirtualHub` (private) and be fully cloneable to any machine you own.
+This document captures the one-time setup required to get `IcarusVirtualHub` under version control on GitHub and accessible from a second machine. After completing this plan the project lives at `github.com/dscottfrey/IcarusVirtualHub` (private) and is fully cloneable to any machine you own.
+
+There are two ways to do Phase 2 — pushing from the desktop to GitHub. **Pick one path and follow it exclusively.** Do not mix steps from both paths.
 
 ---
 
 ## Phase 1 — Create the Private Repo on GitHub
 
+> ⚠️ **Only do Phase 1 if you are following Path B in Phase 2.** If you plan to use Path A (GitHub Desktop only), skip Phase 1 entirely — GitHub Desktop will create the remote repo for you.
+
 1. Open a browser and go to [https://github.com/new](https://github.com/new).
 2. Fill in the form:
+   - **Owner:** `dscottfrey`
    - **Repository name:** `IcarusVirtualHub`
-   - **Description:** *(optional — add a short description if desired)*
    - **Visibility:** `Private` ✓
-   - **Initialize this repository with:** leave all boxes **unchecked** (no README, no .gitignore, no license). You will be pushing an existing project, so a pre-initialized repo will cause a conflict.
+   - **Add a README:** leave **Off**
+   - **Add .gitignore:** leave as **No .gitignore**
+   - **Add license:** leave as **No license**
+
+   > It is critical that all three initialization options remain off. Adding any of them creates a commit on the remote that will conflict with your local repo when you try to push.
+
 3. Click **Create repository**.
-4. Copy the HTTPS remote URL shown on the next page — it will look like:
-   ```
-   https://github.com/dscottfrey/IcarusVirtualHub.git
-   ```
-   You will need this URL in Phase 2.
+4. Note the repo URL: `https://github.com/dscottfrey/IcarusVirtualHub`
 
 ---
 
-## Phase 2 — Initialize Git and Push from the Desktop
+## Phase 2 — Push from the Desktop
 
-Use **either** Xcode's built-in source control **or** GitHub Desktop. Both paths end at the same place; pick whichever feels more comfortable.
+### Path A — GitHub Desktop only (simpler, no Phase 1 needed)
 
-### Option A — GitHub Desktop (recommended, most straightforward)
+Use this path if you have not yet created the repo on github.com.
 
 1. Open **GitHub Desktop**.
 2. Choose **File → Add Local Repository…**
-3. Navigate to and select the root folder of the `IcarusVirtualHub` Xcode project (the folder that contains `IcarusVirtualHub.xcodeproj` or `.xcworkspace`).
-4. GitHub Desktop will either:
-   - **Recognize an existing git repo** → skip to step 5.
-   - **Show a warning that no git repo exists** → click **"create a repository"** in the dialog. Accept the defaults (the project folder is already selected). Click **Create Repository**.
-5. You should now see the repository listed in GitHub Desktop with all project files staged as the initial commit. If the files are staged, write a commit summary (e.g., `Initial commit`) and click **Commit to main**.
-6. Click **Publish repository** in the top-right toolbar.
-7. In the publish dialog:
+3. Navigate to and select the root folder of the `IcarusVirtualHub` Xcode project (the folder containing `IcarusVirtualHub.xcodeproj`).
+4. GitHub Desktop will show a warning that no git repository exists here. Click **"create a repository"** in the dialog, accept the defaults, and click **Create Repository**. GitHub Desktop will initialize git and automatically make an initial commit — you do not need to stage files or write a commit message manually.
+5. Click **Publish repository** in the toolbar (top right).
+6. In the publish dialog:
    - Confirm the **Name** is `IcarusVirtualHub`.
    - Check **Keep this code private**.
-   - Make sure the correct GitHub account (`dscottfrey`) is selected.
-8. Click **Publish Repository**.
-
-GitHub Desktop will push all commits to the remote. You can verify by visiting `https://github.com/dscottfrey/IcarusVirtualHub` in your browser.
+   - Confirm the account is `dscottfrey`.
+7. Click **Publish Repository**. GitHub Desktop creates the private remote repo and pushes in one step.
 
 ---
 
-### Option B — Xcode Source Control
+### Path B — github.com first, then Xcode (used if you already created the repo in Phase 1)
 
-1. Open `IcarusVirtualHub` in **Xcode**.
-2. From the menu bar choose **Source Control → New Git Repositories…**
-3. Xcode shows a list of projects. Make sure `IcarusVirtualHub` is checked, then click **Create**.
-4. Xcode initializes a local git repo. All existing files are staged automatically.
-5. Choose **Source Control → Commit…**, type an initial commit message (e.g., `Initial commit`), and click **Commit**.
-6. Now add the GitHub remote. Open **Source Control → Repositories** (⌘ + 2 in the Source Control Navigator).
-7. Right-click the **Remotes** section under `IcarusVirtualHub` and choose **Add Existing Remote…**
-8. Paste the HTTPS URL you copied in Phase 1:
-   ```
-   https://github.com/dscottfrey/IcarusVirtualHub.git
-   ```
-   Click **Add**.
-9. Choose **Source Control → Push…**, select the `origin/main` remote branch, and click **Push**.
+Use this path if you have already created the empty repo on github.com.
+
+1. Open **GitHub Desktop**.
+2. Choose **File → Add Local Repository…**
+3. Navigate to and select the root folder of the `IcarusVirtualHub` Xcode project.
+4. GitHub Desktop will show a warning that no git repository exists here. Click **"create a repository"**, accept the defaults, and click **Create Repository**. GitHub Desktop automatically makes an initial commit.
+5. At this point, do **not** click Publish Repository — it will fail because a repo with this name already exists on your account. Instead, open the project in **Xcode**.
+6. In Xcode, open the **Source Control Navigator** (the branching-lines icon in the left sidebar, or press ⌘2).
+7. Under **Repositories**, expand `IcarusVirtualHub` → right-click **Remotes** → choose **Add Existing Remote…**
+8. Paste `https://github.com/dscottfrey/IcarusVirtualHub` and click **Add**.
+9. From the menu bar choose **Integrate → Push…**
+
+   > Note: In current versions of Xcode, the old "Source Control" menu has been renamed to **Integrate**.
+
+10. The push dialog will show `origin/main (Create)`. This is expected — it means the branch does not yet exist on the empty remote and will be created by the push. Click **Push**.
 
 ---
 
@@ -76,57 +78,80 @@ GitHub Desktop will push all commits to the remote. You can verify by visiting `
 
 Do this on the **laptop** after Phase 2 is complete.
 
-### Via GitHub Desktop (recommended)
-
 1. Open **GitHub Desktop** on the laptop.
-2. Make sure you are signed in to the same GitHub account (`dscottfrey`). If not: **GitHub Desktop → Preferences → Accounts → Sign In**.
+2. Confirm you are signed in as `dscottfrey`. If not: **GitHub Desktop → Settings → Accounts → Sign In**.
 3. Choose **File → Clone Repository…**
-4. Click the **GitHub.com** tab. Your private repos will be listed — find `IcarusVirtualHub`.
-5. Choose a **Local Path** where you want the project to live on the laptop.
+4. Click the **GitHub.com** tab. Find `IcarusVirtualHub` in your repo list.
+5. Set the **Local Path** to the **parent folder** where you want the project to live — for example `~/Documents/Code`. GitHub Desktop will create the `IcarusVirtualHub` subfolder automatically. Do not create the folder yourself beforehand.
 6. Click **Clone**.
-7. Once cloned, choose **Open in Xcode** from GitHub Desktop's prompt, or open the `.xcodeproj` / `.xcworkspace` file directly in Xcode.
-
-### Via github.com (alternative)
-
-1. On the laptop, visit `https://github.com/dscottfrey/IcarusVirtualHub`.
-2. Click the green **Code** button and copy the HTTPS URL.
-3. Open **GitHub Desktop → File → Clone Repository… → URL tab**, paste the URL, choose a local path, and click **Clone**.
+7. Open the project in Xcode to confirm all files are present and the project builds cleanly.
 
 ---
 
 ## Phase 4 — Day-to-Day Workflow (Desktop ↔ Laptop)
 
-Once the repo is set up, use the following routine to stay in sync across machines:
-
 | Action | How |
 |--------|-----|
-| **Before starting work** | GitHub Desktop → **Fetch origin** → **Pull** (or Xcode → Source Control → Pull) |
-| **After finishing work** | GitHub Desktop → stage changes → **Commit** → **Push** (or Xcode → Source Control → Commit… → Push) |
+| **Before starting work** | GitHub Desktop → **Fetch origin** → **Pull** |
+| **After finishing work** | GitHub Desktop → stage changes → **Commit** → **Push** |
 | **Switching machines** | Always pull on the new machine before editing, and push before switching away |
 
-> ⚠️ **Important:** Never work on both machines simultaneously without pushing/pulling first. Diverging commits will create merge conflicts.
+> ⚠️ Never work on both machines simultaneously without pushing and pulling first. Diverging commits will create merge conflicts.
+
+---
+
+## .gitignore
+
+Add a `.gitignore` immediately after the initial push to prevent Xcode build artifacts and macOS metadata from accumulating in the repo.
+
+In GitHub Desktop: **Repository → Repository Settings… → Ignored Files**, paste the following, then Save, Commit, and Push:
+
+```
+# macOS
+.DS_Store
+
+# Xcode user-specific files
+xcuserdata/
+*.xcuserstate
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+# Xcode build output
+build/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods (if ever used)
+Pods/
+
+# Carthage (if ever used)
+Carthage/Build/
+```
+
+> `.DS_Store` files are created by macOS Finder (not Xcode) and store folder view preferences. Xcode does not use them and they should always be ignored.
 
 ---
 
 ## Verification Checklist
 
-- [ ] Private repo `IcarusVirtualHub` visible at `github.com/dscottfrey/IcarusVirtualHub`
+- [ ] Private repo visible at `github.com/dscottfrey/IcarusVirtualHub`
 - [ ] All project files present in the repo (check the file tree on github.com)
-- [ ] A `.gitignore` appropriate for Xcode exists (GitHub Desktop can generate one; Xcode does not add one automatically — see note below)
+- [ ] `.gitignore` committed and present in the repo
 - [ ] Repo successfully cloned to laptop
 - [ ] Project opens and builds on laptop without errors
-
----
-
-## Note — Xcode .gitignore
-
-Xcode projects generate build artifacts and user-specific files that should not be committed. If you did not get a `.gitignore` automatically, add one:
-
-1. In GitHub Desktop, go to **Repository → Repository Settings… → Ignored Files**.
-2. Paste the standard Xcode `.gitignore` content (available at [https://github.com/github/gitignore/blob/main/Swift.gitignore](https://github.com/github/gitignore/blob/main/Swift.gitignore)).
-3. Click **Save**, then commit the `.gitignore` file.
-
-Alternatively, when creating the repo on github.com (Phase 1), you can choose the **Swift** template from the **Add .gitignore** dropdown — but only if you initialize the repo with a README. If you do this, you will need to pull before pushing in Phase 2 (`git pull --rebase origin main`) to reconcile the histories.
 
 ---
 
