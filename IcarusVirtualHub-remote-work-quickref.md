@@ -34,6 +34,19 @@ Do this before you start working on the laptop.
 
 ---
 
+## Committing Multiple Files with Different Messages (GitHub Desktop)
+
+GitHub Desktop's commit message applies to **all checked files** at the time you click Commit — you cannot pre-assign different messages to different files. To commit files with separate messages, do it sequentially:
+
+1. In the **Changes** tab, **uncheck** the file(s) you want to commit separately.
+2. Write the message for the **checked** file(s) and click **Commit to main**.
+3. The unchecked file(s) will still be there. **Check** them, write their message, and **Commit to main** again.
+4. Push once when done, or after each commit — either works.
+
+> Note: selecting a file in the list does not affect which files are included in the commit — only the **checkboxes** control that.
+
+---
+
 ## Golden Rules
 
 - **Always push before switching machines.**
