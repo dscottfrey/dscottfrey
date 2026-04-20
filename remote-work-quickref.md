@@ -1,4 +1,4 @@
-# IcarusVirtualHub — Remote Work Quick Reference
+# Remote Work Quick Reference
 
 **Scenario:** You've been working on the desktop and need to switch to the laptop (or vice versa).
 
