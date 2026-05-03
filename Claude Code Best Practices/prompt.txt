@@ -1,0 +1,13 @@
+Read CLAUDE.md in this workspace before doing anything else.
+
+Then read Docs/00_OVERALL_DIRECTIVE.md for full project context.
+
+Before working on any specific module or feature, read the directive for that module. The directive is the spec — do not implement anything not covered in it without surfacing the gap first.
+
+Once you have read the relevant files, summarise:
+- What this project is
+- What the current build status is
+- What module or feature we are working on today
+- Any open questions in the relevant directive that need resolving before you can proceed
+
+Then wait for direction. Do not start writing code until you have confirmed the plan.
