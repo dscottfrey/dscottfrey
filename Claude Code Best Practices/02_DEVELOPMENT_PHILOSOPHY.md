@@ -132,6 +132,30 @@ The full reference implementation — both scripts, the placeholder file, the Ru
 
 ---
 
+## Development Signing Doesn't Expire
+
+Local development builds are signed with a long-lived, locally-issued code-signing identity, never with Xcode's auto-provisioned Personal Team certificate.
+
+Personal Team certs (the free identity Xcode auto-creates when a developer signs in with an Apple ID) have a one-year validity and are subject to silent revocation when Apple rotates issuing infrastructure. Every revocation breaks local builds with cryptic signing errors until re-provisioning, and the keychain accumulates `CSSMERR_TP_CERT_REVOKED` entries. This is not a hypothetical failure mode; it is the default failure mode and it bites at the worst possible moment, mid-debug.
+
+**The rule:** every project's development signing identity must be one whose expiry is years out, not a default that resets every twelve months. The choice between a self-signed certificate and a paid Apple Developer Program identity comes down to which the project owner has access to. Both satisfy the principle; Personal Team does not.
+
+### The Approach
+
+For projects whose owner does not yet have a paid Developer Program membership (or where the Developer ID Application cert is reserved for distribution), a self-signed certificate created in Keychain Access with a 10-year validity is the right tool. Conflating "the cert that signs distribution builds" with "the cert that signs local builds" is a category error — the distribution cert is precious (loss = re-issuance through Apple Connect), the development cert is disposable (loss = recreate in 30 seconds). Keep them separate.
+
+The signing identity is set explicitly in Build Settings via `CODE_SIGN_STYLE = Manual` and `CODE_SIGN_IDENTITY = "<CertName>"`, applied to every target that loads into the host app's process — app target, test bundle, and any framework targets the app loads at runtime. This is required because Hardened Runtime's library validation rejects loads where the loaded code's `TeamIdentifier` does not match the host's; mismatched signing identities across in-process targets crash the app at launch or fail tests with cryptic `mapping process and mapped file (non-platform) have different Team IDs` errors.
+
+### Distribution Is Separate
+
+Self-signed builds only run on the developer's own machine. Distribution-ready builds still need a Developer ID Application certificate and notarization (or App Store distribution). The release milestone for any project must therefore include an explicit step: "switch signing back to Developer ID before archiving." A project with milestone-based release tracking calls this out in the milestone description so it does not get forgotten under deadline pressure.
+
+### Implementation
+
+The full reference implementation — the certificate-creation procedure, the per-target Build Settings changes, the Debug-only library-validation entitlements exception that keeps XCTest and Xcode 16's debug-dylib feature working, the verification commands, and the gotchas discovered during real-world implementation — lives in `TEMPLATES/DEVELOPMENT_SIGNING.md`. The directive in any new project's build `CLAUDE.md` must require this practice and point Claude Code at the reference template.
+
+---
+
 ## Anti-Goals Are as Important as Goals
 
 Every project spec should state explicitly what it is NOT building, and why. Anti-goals prevent scope creep, prevent Claude Code from adding "helpful" features that conflict with the project's philosophy, and preserve the integrity of the design.

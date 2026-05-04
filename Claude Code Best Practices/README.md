@@ -32,7 +32,8 @@ Claude Code Best Practices/
     ├── CLAUDE_BUILD.md               ← template for the Xcode/build-workspace CLAUDE.md
     ├── MODULE_DIRECTIVE.md           ← template for a module directive
     ├── ADDENDUM.md                   ← template for an experimental-branch addendum
-    └── BUILD_NUMBER_AUTOMATION.md    ← reference script + About-screen code for auto-incrementing build IDs
+    ├── BUILD_NUMBER_AUTOMATION.md    ← reference script + About-screen code for auto-incrementing build IDs
+    └── DEVELOPMENT_SIGNING.md        ← reference procedure for replacing Personal Team signing with a long-lived dev cert
 ```
 
 ## How To Use This Kit
@@ -59,7 +60,7 @@ Read `03_DEPENDENCY_FRAMEWORK.md` first.
 Read `04_DIRECTIVE_WRITING.md` first.
 
 **When setting up a new project's build infrastructure:**
-Follow `TEMPLATES/BUILD_NUMBER_AUTOMATION.md` to install the build-identifier system from day one.
+Follow `TEMPLATES/BUILD_NUMBER_AUTOMATION.md` to install the build-identifier system from day one. Follow `TEMPLATES/DEVELOPMENT_SIGNING.md` to replace Xcode's Personal Team signing with a long-lived development cert.
 
 **When you spot something the kit should eventually cover but isn't ready to write up yet:**
 Add it to `HANDOFF.md` so it isn't lost.
