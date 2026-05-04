@@ -58,6 +58,10 @@ These apply to every line of code in this project. They are not aspirational —
 
 **Every tunable value has a settings home:** Nothing is hardcoded without a conscious decision. Every value a user might reasonably want to adjust gets a setting.
 
+**Every build is identifiable:** Every build produces a unique, automatically-generated build identifier visible in an About screen. Build numbers are set by an automated script at build time, never maintained by hand. See `Scripts/generate_build_info.sh` and the corresponding Run Script build phase. The About screen displays the marketing version, the build timestamp, and the short git SHA (with a `+` suffix when the working tree is dirty). Reference: `02_DEVELOPMENT_PHILOSOPHY.md` "Every Build Is Identifiable" in the Best Practices kit.
+
+**Color is never the sole signal:** Any information conveyed by color must also be conveyed by at least one other channel — text, an icon or shape, position, or some other non-color cue. Color is permitted as reinforcement of meaning, never as the sole carrier. When implementing a UI element where color is the obvious way to convey state, pause and ask: "Is the color carrying information that nothing else is carrying?" If yes, add a second channel before shipping. Exceptions require explicit owner approval recorded in the relevant module directive.
+
 ---
 
 ## Dependency Policy
@@ -98,6 +102,18 @@ These are decisions, not absences of decisions. Do not add features not in the d
 - **Do not update the directive to match the code** without a deliberate decision that the code is actually right.
 - **Explain technical decisions in plain English.** The project owner may not be a developer. Jargon is explained in context, not assumed.
 - **Surface conflicts explicitly.** If a different approach seems better than what's specified, say so — with reasoning — rather than silently implementing something different.
+
+---
+
+## Owner Accessibility Notes
+
+Accessibility requirements driven by the project owner. These apply to both how Claude Code communicates with the owner during terminal sessions *and* to color choices implemented in the app itself.
+
+The owner has Protanomaly. When providing color-coded information, do not rely on the distinction between Purple/Blue, Green/Brown, or Orange/Green. Use high-contrast labels, distinct icons, or textures instead of color alone.
+
+The same pairs must also be avoided when implementing or proposing colors for the app itself — brand palette, status indicators, chart series, accents, anything visible. The owner reviews every design and uses every build, so a color scheme that visually collapses these pairs for the owner makes both daily use and design review harder. The owner's apps are primarily for the owner's own use; broader accessibility is also a goal but the owner's specific needs take priority when they conflict.
+
+[This is in addition to, not a replacement for, the universal redundancy rule in the development philosophy section above (see "Color Is Never the Sole Signal") — both apply. Edit or remove the owner-specific guidance above based on the actual project owner.]
 
 ---
 

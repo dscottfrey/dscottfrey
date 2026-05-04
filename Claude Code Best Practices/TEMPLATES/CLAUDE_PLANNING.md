@@ -50,6 +50,18 @@ This is NOT where code is written. Code lives in the [Xcode / other] project on 
 
 ---
 
+## Owner Accessibility Notes
+
+Accessibility requirements driven by the project owner. These apply to both how Claude communicates with the owner during sessions *and* to color choices for the app itself.
+
+The owner has Protanomaly. When providing color-coded information, do not rely on the distinction between Purple/Blue, Green/Brown, or Orange/Green. Use high-contrast labels, distinct icons, or textures instead of color alone.
+
+The same pairs must also be avoided when planning or proposing colors for the app itself — brand palette, status indicators, chart series, accents. The owner reviews every design and uses every build, so a color scheme that visually collapses these pairs for the owner makes both daily use and design review harder. The owner's apps are primarily for the owner's own use; broader accessibility is also a goal but the owner's specific needs take priority when they conflict.
+
+[This is in addition to, not a replacement for, the universal redundancy rule in `02_DEVELOPMENT_PHILOSOPHY.md` "Color Is Never the Sole Signal" — both apply to every project. Edit or remove the owner-specific guidance above based on the actual project owner.]
+
+---
+
 ## Handoff Notes
 
 [Things to revisit in future planning sessions — decisions that were closed for now but warrant a second look as the build matures. Include: what the note is about, the current decision, the trigger to revisit, and the migration path if applicable.]

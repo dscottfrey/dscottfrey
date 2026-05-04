@@ -96,6 +96,42 @@ This is not an invitation to build a settings screen that requires a manual. Adv
 
 ---
 
+## Every Build Is Identifiable
+
+Every build of the app produces a unique, automatically-generated build identifier that is visible to the user in an About screen. No two builds are ever indistinguishable.
+
+This is a discipline for the project owner first, not for end users. When troubleshooting — especially via screenshots, recordings, or a verbal description from someone else — the single most useful piece of information is "which build is this?" Without it, you spend the first ten minutes of every debugging session trying to figure out whether the user is running the build with the fix or the one before it.
+
+**The rule:** the build identifier is set by an automated script at build time, not maintained by hand. A human cannot be relied on to remember to increment a number. They will forget, exactly when it matters most.
+
+### The Approach
+
+`CFBundleVersion` (the build number on Apple platforms) is set by a Run Script build phase to a Unix timestamp — either seconds since epoch or a compact `YYYYMMDDHHMM` form. The About screen displays three things:
+
+- The marketing version (`CFBundleShortVersionString`, e.g. `1.2.0`) — set by hand at release time
+- The build number (the timestamp) — set automatically on every build
+- The short git SHA of `HEAD` at build time — set automatically on every build, with a trailing `+` if the working tree was dirty
+
+Example About display: `1.2.0 (2604051847 · a3f9c1e+)`
+
+The `+` on the SHA matters. A dirty working tree means the build does not correspond to any committed state — without the marker, the SHA alone is misleading.
+
+### Why Timestamp Rather Than Commit Count
+
+A common alternative is to set the build number to `git rev-list --count HEAD` so it tracks commits. This fails in the exact case the build identifier most needs to succeed: troubleshooting. During a debugging session you typically rebuild many times *without* committing — three rapid debug builds would all report the same build number. A timestamp is always unique and always monotonically increasing.
+
+### App Store and TestFlight Compatibility
+
+Apple's App Store and TestFlight require `CFBundleVersion` to be monotonically increasing per marketing version. A Unix timestamp satisfies this trivially — every new build has a larger value than the previous one. No special handling is needed when the project eventually ships through these channels. Plan for this from the first build, even on projects that are nowhere near submission yet; retrofitting it under deadline pressure is exactly the kind of thing that gets skipped.
+
+### Implementation
+
+The build-time automation is identical on iOS and macOS — both rely on a Run Script build phase that updates `Info.plist` (or the equivalent build settings). What differs is the *display* layer: macOS apps can lean on `NSApplication.orderFrontStandardAboutPanel(_:)` with a custom credits dictionary; iOS apps need a custom About view.
+
+A reference script and About-screen snippet live in `TEMPLATES/BUILD_NUMBER_AUTOMATION.md` so they are copied into new projects rather than re-derived. The directive in any new project's build `CLAUDE.md` must require this practice and point Claude Code at the reference template — Claude Code should not invent its own version.
+
+---
+
 ## Anti-Goals Are as Important as Goals
 
 Every project spec should state explicitly what it is NOT building, and why. Anti-goals prevent scope creep, prevent Claude Code from adding "helpful" features that conflict with the project's philosophy, and preserve the integrity of the design.
@@ -134,6 +170,26 @@ The app should be self-explanatory. If it requires a tutorial, the UX needs to b
 - No artificially imposed limitations designed to frustrate ("You've reached your daily limit")
 - No UI designed to confuse or mislead the user into unwanted actions
 - No upsells or upgrade prompts in the core reading/using experience
+
+---
+
+## Color Is Never the Sole Signal
+
+Any information conveyed by color must also be conveyed by at least one other channel — text, an icon or shape, position, or some other non-color cue. Roughly 5–8% of male users have some form of color vision deficiency; for them, a red badge that is not also labelled, or a green/red status dot that has no checkmark/X, simply does not exist as information.
+
+**The rule:** color is permitted as *reinforcement* of meaning. It is not permitted as the *sole* carrier of meaning. This is not a suggestion to drain color from the UI — color is a powerful communication tool and should be used. It is a rule about *redundancy*. Every information-bearing color choice has a non-color partner.
+
+**Examples:**
+
+- A status row uses both a colored dot AND a label ("Connected" / "Offline")
+- An error message uses red AND a clear icon AND prefixes the text with "Error:"
+- A diff view uses red/green AND uses `+` / `−` markers in the gutter
+- Form validation uses a red border AND a text message under the field
+- A "selected" state uses both a tint AND a checkmark, border, or position change
+
+**Surfacing the question:** when Claude Code is implementing a UI element where color is the obvious way to convey state, it must pause and ask: "Is the color carrying information that nothing else is carrying?" If yes, add a second channel before shipping. If a project owner explicitly approves a color-only signal for a specific case — because adding redundancy would clutter the UI more than it helps — record that decision in the relevant module directive with the rationale, same as any other approved exception.
+
+This is the first accessibility principle captured in this kit. It is not the only one that matters; it is the one most often violated.
 
 ---
 
