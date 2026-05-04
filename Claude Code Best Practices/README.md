@@ -20,10 +20,11 @@ Claude Code Best Practices/
 ├── prompt.txt                   ← paste this to start a new build session
 │
 ├── 01_PLANNING_WORKFLOW.md      ← how to set up and run the planning layer
-├── 02_DEVELOPMENT_PHILOSOPHY.md ← code quality principles that Claude Code must follow
+├── 02_DEVELOPMENT_PHILOSOPHY.md ← code quality principles that Claude Code must follow (platform-agnostic)
 ├── 03_DEPENDENCY_FRAMEWORK.md   ← how to evaluate and justify external libraries
 ├── 04_DIRECTIVE_WRITING.md      ← how to write effective directives
 ├── 05_ARCHITECTURE_DECISIONS.md ← how to record and revisit architectural choices
+├── 06_SWIFT_SWIFTUI_IDIOMS.md   ← platform-specific rules for Swift/SwiftUI projects (iOS 26+)
 │
 ├── HANDOFF.md                   ← running log of future additions and open threads for the kit itself
 │
@@ -58,6 +59,9 @@ Read `03_DEPENDENCY_FRAMEWORK.md` first.
 
 **When writing a new directive:**
 Read `04_DIRECTIVE_WRITING.md` first.
+
+**When starting a new Swift/SwiftUI project:**
+Read `06_SWIFT_SWIFTUI_IDIOMS.md`. Before relying on it, do the freshness check at the top of the file (the upstream source evolves).
 
 **When setting up a new project's build infrastructure:**
 Follow `TEMPLATES/BUILD_NUMBER_AUTOMATION.md` to install the build-identifier system from day one. Follow `TEMPLATES/DEVELOPMENT_SIGNING.md` to replace Xcode's Personal Team signing with a long-lived development cert.

@@ -64,6 +64,8 @@ These apply to every line of code in this project. They are not aspirational —
 
 **Color is never the sole signal:** Any information conveyed by color must also be conveyed by at least one other channel — text, an icon or shape, position, or some other non-color cue. Color is permitted as reinforcement of meaning, never as the sole carrier. When implementing a UI element where color is the obvious way to convey state, pause and ask: "Is the color carrying information that nothing else is carrying?" If yes, add a second channel before shipping. Exceptions require explicit owner approval recorded in the relevant module directive.
 
+**Swift/SwiftUI projects:** Also read `Docs/06_SWIFT_SWIFTUI_IDIOMS.md` (copied into the project's `Docs/` folder from the Best Practices kit at project setup time). It contains platform-specific rules — modern API discipline, observation patterns, view composition, and common AI-generated-code anti-patterns — that complement the general principles above. Remove this bullet entirely if the project is not Swift/SwiftUI.
+
 ---
 
 ## Dependency Policy

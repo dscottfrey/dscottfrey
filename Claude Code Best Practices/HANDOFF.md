@@ -60,6 +60,16 @@ The kit teaches cross-referencing as a directive practice but the kit's own file
 
 *Trigger to resolve:* if the discipline fails again, consider mechanical alternatives (e.g., have the build template `include` from `02`, or generate it).
 
+### Pattern: External Sources Need Freshness Checks
+The kit now incorporates content from at least one external authoritative source that evolves (Paul Hudson's `SwiftAgents`, mirrored in `06_SWIFT_SWIFTUI_IDIOMS.md`). The freshness mechanism baked into `06` — sync date at top, "before relying on this for a new project, fetch the upstream and reconcile" instructions, "Local Divergences" section — should generalise into a kit-wide pattern when we incorporate from any other evolving source. If/when a third such incorporation happens (Apple HIG digest, third-party Swift package conventions, accessibility guidelines digest, etc.), promote this from "the way `06` happens to do it" to a documented kit pattern in `04_DIRECTIVE_WRITING.md` or its own short file.
+
+*Trigger to resolve:* a third incorporation from an external evolving source.
+
+### SwiftLint Adoption Decision
+`06_SWIFT_SWIFTUI_IDIOMS.md` deliberately omits SwiftLint guidance — it is not currently in use, and most of what SwiftLint catches is covered by the existing rules. SwiftLint becomes worth adopting when (a) Claude Code starts producing inconsistent Swift code that the kit's rules don't catch, or (b) a multi-contributor project starts where enforcement is more important than just guidance, or (c) the owner specifically wants a build-time gate on style. None of those apply now.
+
+*Trigger to resolve:* any of the conditions above. When adopted, add a SwiftLint section to `06`, plus a build-phase or pre-commit hook setup template (probably under `TEMPLATES/`).
+
 ### Switch From Self-Signed to Real Developer ID
 `TEMPLATES/DEVELOPMENT_SIGNING.md` and the "Development Signing Doesn't Expire" section in `02_DEVELOPMENT_PHILOSOPHY.md` currently describe the self-signed-cert approach. When the project owner has a paid Apple Developer Program membership and a Developer ID Application certificate, both need revisions:
 
@@ -74,6 +84,8 @@ The kit teaches cross-referencing as a directive practice but the kit's own file
 ## Resolved
 
 - ✅ **2026-05-04 — Build Number Automation (initial spec).** Added "Every Build Is Identifiable" section to `02_DEVELOPMENT_PHILOSOPHY.md` and reference implementation to `TEMPLATES/BUILD_NUMBER_AUTOMATION.md`. Chose Option B: every build regenerates a `BuildInfo.swift`; Release builds additionally bump `CFBundleVersion` in `Info.plist` for App Store / TestFlight compliance. Initially supported both new-project and retrofit flows.
+
+- ✅ **2026-05-04 — Swift/SwiftUI Idioms (platform layer).** Added `06_SWIFT_SWIFTUI_IDIOMS.md` as the first platform-specific layer of the kit; files 01–05 remain platform-agnostic. Adapted from Paul Hudson's [SwiftAgents](https://github.com/twostraws/SwiftAgents) `AGENTS.md` (which itself derives from his article ["What to fix in AI-generated Swift code"](https://www.hackingwithswift.com/articles/281)). Kit-conformant adaptations: added rationale to most rules, added an "Older Target Adjustments" table for projects not on iOS 26+, added a "Source and Freshness" section pinning the sync date and prescribing a refresh check before each new project's use, added a "Local Divergences From Source" section (omitted: "Senior iOS Engineer" persona framing because it conflicts with the kit's plain-English-to-non-developer audience; omitted: SwiftLint section because not in use; modified: view composition rules to flag community-debate trade-offs rather than assert flat rules). Updated README, build template (added a single conditional pointer bullet rather than replicating ~30 rules inline), and HANDOFF (build-template summary drift discipline held). New active threads queued: source-freshness pattern (meta), SwiftLint adoption decision.
 
 - ✅ **2026-05-04 — Development Signing (self-signed cert).** Added "Development Signing Doesn't Expire" section to `02_DEVELOPMENT_PHILOSOPHY.md`, plus reference implementation at `TEMPLATES/DEVELOPMENT_SIGNING.md`. Captures the rationale (Personal Team certs expire and are silently revoked on Apple infra rotations), the procedure (Keychain Assistant 10-year self-signed cert, Manual signing identity per target, Debug-only entitlements file with `disable-library-validation` to keep XCTest working, Xcode 16 debug-dylib disabled), and the gotchas discovered during real implementation. Updated `CLAUDE_BUILD.md` philosophy summary in the same edit (drift discipline held). New active thread tracks the eventual switch to a real Developer ID Application certificate.
 
