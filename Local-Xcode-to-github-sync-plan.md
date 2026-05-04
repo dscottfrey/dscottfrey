@@ -1,4 +1,4 @@
-# IcarusVirtualHub — GitHub Sync Plan
+# GitHub Sync Plan
 
 **Date:** 2026-04-20  
 **Author:** Scott Frey  
