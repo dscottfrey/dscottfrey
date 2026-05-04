@@ -106,13 +106,13 @@ This is a discipline for the project owner first, not for end users. When troubl
 
 ### The Approach
 
-`CFBundleVersion` (the build number on Apple platforms) is set by a Run Script build phase to a Unix timestamp — either seconds since epoch or a compact `YYYYMMDDHHMM` form. The About screen displays three things:
+`CFBundleVersion` (the build number on Apple platforms) is set by an automated build phase to a compact `YYMMDDhhmm` timestamp (10 digits, e.g. `2605041335`). The About screen displays three things:
 
 - The marketing version (`CFBundleShortVersionString`, e.g. `1.2.0`) — set by hand at release time
-- The build number (the timestamp) — set automatically on every build
+- The build timestamp — set automatically on every build
 - The short git SHA of `HEAD` at build time — set automatically on every build, with a trailing `+` if the working tree was dirty
 
-Example About display: `1.2.0 (2604051847 · a3f9c1e+)`
+Example About display: `1.2.0 (2605041335 · a7672bc+)`
 
 The `+` on the SHA matters. A dirty working tree means the build does not correspond to any committed state — without the marker, the SHA alone is misleading.
 
@@ -126,9 +126,9 @@ Apple's App Store and TestFlight require `CFBundleVersion` to be monotonically i
 
 ### Implementation
 
-The build-time automation is identical on iOS and macOS — both rely on a Run Script build phase that updates `Info.plist` (or the equivalent build settings). What differs is the *display* layer: macOS apps can lean on `NSApplication.orderFrontStandardAboutPanel(_:)` with a custom credits dictionary; iOS apps need a custom About view.
+The build-time automation uses two Run Script build phases — one runs before Compile Sources and generates a tracked-but-regenerated `BuildInfo.swift` containing the timestamp, SHA, and dirty marker; the other runs as the last build phase and mutates the *built* `Info.plist`'s `CFBundleVersion` on Release builds only (so no committed source file is touched on every build). The same setup works on iOS and macOS. What differs is the *display* layer: macOS apps can lean on `NSApplication.orderFrontStandardAboutPanel(_:)` with a custom credits dictionary; iOS apps need a custom About view.
 
-A reference script and About-screen snippet live in `TEMPLATES/BUILD_NUMBER_AUTOMATION.md` so they are copied into new projects rather than re-derived. The directive in any new project's build `CLAUDE.md` must require this practice and point Claude Code at the reference template — Claude Code should not invent its own version.
+The full reference implementation — both scripts, the placeholder file, the Run Script setup, the User Script Sandboxing build setting, About-screen wiring for both platforms, and the gotchas discovered during real-world implementation — lives in `TEMPLATES/BUILD_NUMBER_AUTOMATION.md` so it is followed exactly rather than re-derived. The directive in any new project's build `CLAUDE.md` must require this practice and point Claude Code at the reference template — Claude Code should not invent its own version.
 
 ---
 

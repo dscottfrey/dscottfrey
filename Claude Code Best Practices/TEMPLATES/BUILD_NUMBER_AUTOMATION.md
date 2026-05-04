@@ -1,50 +1,86 @@
 # Build Number Automation — Reference Implementation
 
-Concrete script and code snippets for the "Every Build Is Identifiable" rule in `02_DEVELOPMENT_PHILOSOPHY.md`. Copy these into a new project rather than re-deriving them.
+The procedure for setting up automated build identification in an Xcode project from day one. Every build embeds an unambiguous identifier in its About panel.
 
-This template implements **Option B**: every build generates a gitignored `BuildInfo.swift` containing the timestamp, git SHA, and dirty marker. Release builds additionally bump `CFBundleVersion` in `Info.plist` for App Store / TestFlight monotonic-version compliance. Debug builds leave `Info.plist` alone, so day-to-day development does not pollute `git status`.
-
-The same setup works for iOS and macOS targets — the script is identical. Only the About-screen presentation differs.
+This is set up at the start of a new project, not retrofitted later — the kit treats build identification as a foundational practice, like git itself, that goes in before any feature work begins. The implementation is battle-tested: it was refined from a real-world setup, and the bugs found during that setup are captured in "Known Gotchas" below so future projects do not rediscover them.
 
 ---
 
 ## What You Are Setting Up
 
-1. A tracked-in-git script (`Scripts/generate_build_info.sh`) that produces the build identifier
-2. A generated Swift file (`BuildInfo.swift`) that is overwritten on every build and is *not* tracked in git
-3. A `.gitignore` entry so the regeneration does not pollute commits
-4. A Run Script build phase per target that invokes the script
-5. About-screen code that reads from the generated file
+Every build embeds in the About panel:
 
-The script also updates `CFBundleVersion` on Release builds so the project is App-Store-ready from day one.
+- A timestamp `YYMMDDhhmm` (e.g. `2605041335`)
+- The short git SHA of HEAD
+- A `+` dirty marker when the working tree had uncommitted changes
+- The active configuration
+
+Example display: `Build 2605041335 · a7672bc+`
+
+Release builds additionally get a monotonically-increasing `CFBundleVersion` (matching the timestamp) for App Store / TestFlight / Sparkle compatibility, *without* mutating any committed file.
+
+The pieces:
+
+1. Two tracked-in-git scripts (`Scripts/generate_build_info.sh` and `Scripts/bump_built_info_plist.sh`)
+2. A tracked placeholder Swift file (`<target_source>/Generated/BuildInfo.swift`) that the script overwrites every build
+3. Two Run Script build phases per app target (one before Compile Sources, one as the last phase)
+4. A Build Setting change (User Script Sandboxing → No)
+5. About-screen wiring that reads from the generated file
 
 ---
 
-## Step 1 — Create the build-info generator script
+## Decisions Baked Into This Approach
 
-The script lives as a tracked-in-git source file rather than embedded inside the Xcode build phase. This keeps `.pbxproj` clean, makes the script editable as normal source, and lets multiple targets in the same project share one script (each Run Script phase just passes a different output path).
+For when future-you wonders why something was done this way.
 
-Create:
+### Mutate the BUILT Info.plist on Release, not the source
 
-```
-Scripts/generate_build_info.sh
-```
+If the target uses `GENERATE_INFOPLIST_FILE = YES` (Xcode 16 default for new projects), there is no source `Info.plist` file to mutate. Solution: PlistBuddy on the *built* Info.plist (`$BUILT_PRODUCTS_DIR/$INFOPLIST_PATH`) AFTER Xcode generates it but BEFORE Code Sign. Works for both generated and hand-maintained modes. Never touches a committed file. The source `CURRENT_PROJECT_VERSION` in `.pbxproj` stays at its baseline value.
 
-at the project root. Make it executable (`chmod +x Scripts/generate_build_info.sh`). Contents:
+### Two Run Script phases, not one
+
+The two operations need different positions in the build phase order:
+
+- **"Generate BuildInfo"** runs BEFORE Compile Sources — the Swift file must exist before the compiler reads it.
+- **"Bump CFBundleVersion (Release only)"** runs AFTER Copy Bundle Resources (which is implicitly after Process Info.plist on a generated-Info.plist project) — the built plist must exist before we mutate it.
+
+A single script cannot be in two places, so two phases, two scripts.
+
+### Track the BuildInfo.swift placeholder; tolerate or suppress its noise
+
+`BuildInfo.swift` is regenerated on every build. Three options for handling git-status noise:
+
+1. **Tolerate the noise.** For a solo dev who stages by filename (not `git add -A`), the noise lives only in `git status` output and Xcode's "M" badges. Doesn't pollute commits. **Default for solo projects.**
+2. **`git update-index --skip-worktree` per clone.** Eliminates noise but requires every contributor to remember the setup step. **Use for a multi-contributor public project.**
+3. **Bundle redesign:** read from `Bundle.main.infoDictionary` instead of a generated Swift file. No source file is touched on every build. More invasive but eliminates the issue entirely. **Use when contributor onboarding matters more than implementation simplicity.**
+
+Why not pure gitignore: `PBXFileSystemSynchronizedRootGroup` (Xcode 16+) determines target membership at build-graph construction time, before any Run Script runs. A pure-gitignore approach risks the first build on a fresh clone omitting `BuildInfo.swift` from the binary.
+
+### About panel via `NSApp` + `.commands` (macOS SwiftUI)
+
+Override the SwiftUI default "About <App>" menu item with `.commands { CommandGroup(replacing: .appInfo) { ... } }`. The button calls an AppKit helper that uses `NSApp.orderFrontStandardAboutPanel(options:)` with a `.credits` `NSAttributedString` containing the build line. The standard panel's icon, name, version, and copyright are preserved; only the Credits area gets a build line added. `.commands` attaches to the scene, so it is forward-compatible with a future `WindowGroup → DocumentGroup` migration.
+
+For iOS or a SwiftUI custom About view, just put `Text("Build \(BuildInfo.displayString)")` somewhere visible.
+
+---
+
+## Phase 1 — Files to Create
+
+### `Scripts/generate_build_info.sh`
+
+Create at the repo root. Make it executable: `chmod +x Scripts/generate_build_info.sh`. Commit it.
 
 ```bash
 #!/bin/bash
-# Generate BuildInfo.swift with timestamp, git SHA, and dirty marker.
-# On Release builds, also bump CFBundleVersion in Info.plist for App Store / TestFlight.
-# Called from a Run Script build phase. The output path is passed as the first argument
-# so the same script works for any target / any source folder layout.
-# See Claude Code Best Practices / 02_DEVELOPMENT_PHILOSOPHY.md.
+# Generate <output>/BuildInfo.swift with build timestamp, short git SHA, and dirty marker.
+# Runs as a Run Script build phase BEFORE Compile Sources. Output path is the first argument.
+# See Claude Code Best Practices / 02_DEVELOPMENT_PHILOSOPHY.md "Every Build Is Identifiable".
 
 set -e
 
 # --- Compute build identifier values ---
 
-TIMESTAMP=$(date +%Y%m%d%H%M)
+TIMESTAMP=$(date +%y%m%d%H%M)
 
 # Build phases run with a minimal PATH; locate git via xcrun or fall back.
 GIT=$(xcrun -find git 2>/dev/null || which git || echo "/usr/bin/git")
@@ -58,14 +94,12 @@ if [ -x "$GIT" ] && "$GIT" -C "$SRCROOT" rev-parse --git-dir > /dev/null 2>&1; t
         IS_DIRTY="true"
     fi
 else
-    # Not a git repo, or git unavailable. Fail soft so non-git builds still work.
     GIT_SHA="nogit"
     IS_DIRTY="false"
 fi
 
 # --- Write BuildInfo.swift ---
 
-# Output path is passed in by the build phase invocation.
 BUILD_INFO_PATH="$1"
 
 if [ -z "$BUILD_INFO_PATH" ]; then
@@ -77,7 +111,8 @@ mkdir -p "$(dirname "$BUILD_INFO_PATH")"
 
 cat > "$BUILD_INFO_PATH" <<EOF
 // BuildInfo.swift
-// AUTO-GENERATED at build time. Do not edit by hand. Do not commit (gitignored).
+// AUTO-REGENERATED at build time. Tracked in git as a placeholder; the contents are
+// overwritten on every build. Do not edit by hand.
 // See 02_DEVELOPMENT_PHILOSOPHY.md "Every Build Is Identifiable" for the why.
 
 enum BuildInfo {
@@ -86,7 +121,7 @@ enum BuildInfo {
     static let isDirty: Bool = $IS_DIRTY
     static let configuration: String = "$CONFIGURATION"
 
-    /// Display string suitable for an About screen, e.g. "2604051847 · a3f9c1e+"
+    /// Display string suitable for an About screen, e.g. "2605041335 · a7672bc+"
     static var displayString: String {
         let dirtyMarker = isDirty ? "+" : ""
         return "\(timestamp) · \(gitSHA)\(dirtyMarker)"
@@ -94,54 +129,58 @@ enum BuildInfo {
 }
 EOF
 
-# --- On Release, bump CFBundleVersion for App Store / TestFlight ---
-# Release uploads require monotonically increasing CFBundleVersion per marketing version.
-# A timestamp satisfies this trivially. Debug builds skip this so git status stays clean.
-
-if [ "$CONFIGURATION" = "Release" ]; then
-    if [ -n "$INFOPLIST_FILE" ] && [ -f "${SRCROOT}/${INFOPLIST_FILE}" ]; then
-        # Hand-maintained Info.plist file.
-        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $TIMESTAMP" "${SRCROOT}/${INFOPLIST_FILE}"
-        echo "Release build: CFBundleVersion set to $TIMESTAMP in ${INFOPLIST_FILE}"
-    else
-        # Modern Xcode (15+) generates Info.plist from build settings — no file to update here.
-        # In that case, set CURRENT_PROJECT_VERSION via xcconfig or use a scheme pre-action.
-        # See "Modern Xcode (no Info.plist file)" later in this document.
-        echo "warning: No Info.plist file at \$SRCROOT/\$INFOPLIST_FILE — see template doc for modern Xcode workaround"
-    fi
-fi
-
 echo "BuildInfo: $TIMESTAMP $GIT_SHA dirty=$IS_DIRTY config=$CONFIGURATION"
 ```
 
-Commit `Scripts/generate_build_info.sh` to the repository — it is normal source code and is versioned alongside the rest of the project.
+### `Scripts/bump_built_info_plist.sh`
 
----
+Create at the repo root. Make it executable. Commit it.
 
-## Step 2 — Create the placeholder `BuildInfo.swift`
+```bash
+#!/bin/bash
+# Bump CFBundleVersion in the BUILT Info.plist on Release builds only.
+# Runs as the LAST build phase, after Process Info.plist and Copy Bundle Resources,
+# but before Code Sign. Mutates the built copy of Info.plist, never any source file.
+# Works for both hand-maintained Info.plist and GENERATE_INFOPLIST_FILE = YES projects.
+# See Claude Code Best Practices / 02_DEVELOPMENT_PHILOSOPHY.md "Every Build Is Identifiable".
 
-For each target that needs a build identifier, create a placeholder Swift file at:
+set -e
 
+if [ "$CONFIGURATION" != "Release" ]; then
+    echo "bump_built_info_plist: skipping (CONFIGURATION=$CONFIGURATION)"
+    exit 0
+fi
+
+BUILT_PLIST="$BUILT_PRODUCTS_DIR/$INFOPLIST_PATH"
+
+if [ ! -f "$BUILT_PLIST" ]; then
+    echo "error: built Info.plist not found at $BUILT_PLIST"
+    exit 1
+fi
+
+TIMESTAMP=$(date +%y%m%d%H%M)
+
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $TIMESTAMP" "$BUILT_PLIST"
+echo "bump_built_info_plist: CFBundleVersion = $TIMESTAMP"
 ```
-<YourTargetName>/Generated/BuildInfo.swift
-```
 
-The placeholder must exist so Xcode adds the file to the target's "Compile Sources" — the script will overwrite its contents on the next build, but Xcode needs to know the file is part of the target before that first build runs.
+### `<target_source>/Generated/BuildInfo.swift` (tracked placeholder)
 
-Initial contents:
+For each app target, create this file with sentinel placeholder content. The script will overwrite it on the first build, but the placeholder must exist *before* the first build so synchronized groups (Xcode 16+) include it as a target member.
 
 ```swift
 // BuildInfo.swift
-// AUTO-GENERATED at build time. Do not edit by hand. Do not commit (gitignored).
+// AUTO-REGENERATED at build time. Tracked in git as a placeholder; the contents are
+// overwritten on every build. Do not edit by hand.
 // See 02_DEVELOPMENT_PHILOSOPHY.md "Every Build Is Identifiable" for the why.
 
 enum BuildInfo {
-    static let timestamp: String = "000000000000"
+    static let timestamp: String = "uninit"
     static let gitSHA: String = "uninit"
     static let isDirty: Bool = false
-    static let configuration: String = "Unknown"
+    static let configuration: String = "uninit"
 
-    /// Display string suitable for an About screen, e.g. "2604051847 · a3f9c1e+"
+    /// Display string suitable for an About screen, e.g. "2605041335 · a7672bc+"
     static var displayString: String {
         let dirtyMarker = isDirty ? "+" : ""
         return "\(timestamp) · \(gitSHA)\(dirtyMarker)"
@@ -149,92 +188,24 @@ enum BuildInfo {
 }
 ```
 
-In Xcode, drag this file into the target so it is compiled. Confirm it shows up under "Compile Sources" in the target's Build Phases.
+If `.gitignore` already matches `**/Generated/BuildInfo.swift` (per the next step), use `git add -f <path>` to force-track this placeholder.
 
----
+### `.gitignore` addition
 
-## Step 3 — Add the `.gitignore` entry
-
-Append to `.gitignore` at the project root:
+Append to `.gitignore` at the repo root:
 
 ```
-# Auto-regenerated on every build by the BuildInfo Run Script phase.
-# See Claude Code Best Practices / 02_DEVELOPMENT_PHILOSOPHY.md.
+# Auto-regenerated on every build. Tracked once as a placeholder; .gitignore here
+# documents intent and catches any future Generated/ files. See Claude Code Best
+# Practices / 02_DEVELOPMENT_PHILOSOPHY.md.
 **/Generated/BuildInfo.swift
 ```
 
-The script itself (`Scripts/generate_build_info.sh`) is intentionally *not* gitignored — it is committed as normal source.
+This is inert on the tracked placeholder file (gitignore does not untrack files), but documents intent and catches any future `Generated/` files.
 
-After committing the placeholder once, run:
+### About panel wiring (macOS SwiftUI)
 
-```
-git rm --cached <YourTargetName>/Generated/BuildInfo.swift
-git commit -m "Stop tracking generated BuildInfo.swift"
-```
-
-The file stays on disk; git just stops watching it.
-
----
-
-## Step 4 — Add the Run Script build phase
-
-In Xcode: select the target → Build Phases → `+` → New Run Script Phase.
-
-**Drag the new phase to run *before* "Compile Sources"** so `BuildInfo.swift` is up to date when the compiler reads it.
-
-Name the phase: `Generate BuildInfo`.
-
-Uncheck "Based on dependency analysis" — this script must run every build, not only when input files change.
-
-Paste this one-liner into the script body:
-
-```bash
-"${SRCROOT}/Scripts/generate_build_info.sh" "${SRCROOT}/<YourTargetName>/Generated/BuildInfo.swift"
-```
-
-Replace `<YourTargetName>` with the actual source folder for this target. If multiple targets need build identifiers, each one gets its own Run Script phase with its own output path argument — they all call the same `Scripts/generate_build_info.sh`.
-
-Build the project once. `BuildInfo.swift` should now contain real values.
-
----
-
-## Step 5 — Display in the About Screen
-
-### iOS (SwiftUI)
-
-```swift
-import SwiftUI
-
-struct AboutView: View {
-    private var appName: String {
-        Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "App"
-    }
-
-    private var marketingVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
-    }
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Text(appName)
-                .font(.title2)
-            Text("Version \(marketingVersion)")
-                .font(.subheadline)
-            // The full build identifier — uniquely identifies which build this is.
-            // Mention this string when reporting issues or comparing screenshots.
-            Text("Build \(BuildInfo.displayString)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .textSelection(.enabled)
-        }
-        .padding()
-    }
-}
-```
-
-### macOS — Using the Standard About Panel
-
-The simplest macOS option is to inject the build identifier into the system About panel:
+`<target_source>/Views/AboutPanel.swift`:
 
 ```swift
 import AppKit
@@ -256,61 +227,156 @@ enum AboutPanel {
 }
 ```
 
-Wire `AboutPanel.show()` to the application's About menu item. For SwiftUI macOS apps using the `App` / `Scene` lifecycle, replace the default About menu item via:
+In `<target>App.swift`, add to the scene:
 
 ```swift
 .commands {
     CommandGroup(replacing: .appInfo) {
-        Button("About \(appName)") { AboutPanel.show() }
+        Button("About <AppName>") { AboutPanel.show() }
     }
 }
 ```
 
-For AppKit-based apps, override the action of the existing About menu item in the storyboard or `MainMenu.xib`.
+`.commands` attaches to the scene, so this survives a future `WindowGroup → DocumentGroup` migration.
 
-The standard panel automatically shows the app name, marketing version, and `CFBundleVersion` — your timestamp will appear there too on Release builds, and the `BuildInfo.displayString` in the credits area gives you the SHA and dirty marker on every build.
+### About view (iOS SwiftUI)
 
-### macOS — Custom SwiftUI About Window
+For iOS, no menu override is needed — wire an About view into Settings or wherever a tap reveals app info:
 
-If you want a fully custom About view, the iOS SwiftUI code above works on macOS too. Present it in a `Window` scene or via `NSWindowController`.
+```swift
+import SwiftUI
+
+struct AboutView: View {
+    private var appName: String {
+        Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "App"
+    }
+
+    private var marketingVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Text(appName).font(.title2)
+            Text("Version \(marketingVersion)").font(.subheadline)
+            Text("Build \(BuildInfo.displayString)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+        }
+        .padding()
+    }
+}
+```
 
 ---
 
-## Modern Xcode (No `Info.plist` File)
+## Phase 2 — Manual Xcode Steps for the Human
 
-Xcode 15+ projects often have no `Info.plist` file — Info.plist is generated from build settings. In that case the script's `PlistBuddy` step will hit the warning branch.
+These three steps require Xcode's UI. **Do NOT edit `.pbxproj` programmatically** — risk to project integrity is not worth it.
 
-The workaround:
+### Step 1 — Add "Generate BuildInfo" Run Script phase
 
-1. Add an `xcconfig` file to your project (e.g. `Config/Version.xcconfig`)
-2. Set `CURRENT_PROJECT_VERSION = 1` as a starting value
-3. Add a *pre-action* on the Release scheme (Edit Scheme → Build → Pre-actions) that overwrites the `xcconfig`'s `CURRENT_PROJECT_VERSION` line with the current timestamp before the build begins
-4. Reference the xcconfig in the project's Configurations
+1. Project Navigator → top item → TARGETS → app target.
+2. **Build Phases** tab → `+` → **New Run Script Phase**.
+3. Rename to `Generate BuildInfo`.
+4. **Drag it ABOVE Compile Sources** (also called "Sources").
+5. **Uncheck "Based on dependency analysis"** — this script must run every build.
+6. Paste this exact script body — **the surrounding `"` characters ARE part of the literal command, not markdown formatting**:
 
-Document the exact pre-action script in the project's build `CLAUDE.md` once you have it working — it's project-specific because it depends on the xcconfig's path.
+   ```
+   "${SRCROOT}/Scripts/generate_build_info.sh" "${SRCROOT}/<target_source>/Generated/BuildInfo.swift"
+   ```
+
+   Verify exactly **four `"` characters** in the box. Replace `<target_source>` with the actual folder name.
+
+### Step 2 — Add "Bump CFBundleVersion (Release only)" Run Script phase
+
+1. Same Build Phases tab → `+` → **New Run Script Phase**.
+2. Rename to `Bump CFBundleVersion (Release only)`.
+3. Position it as the **LAST** phase (after Copy Bundle Resources).
+4. **Uncheck "Based on dependency analysis"**.
+5. Paste:
+
+   ```
+   "${SRCROOT}/Scripts/bump_built_info_plist.sh"
+   ```
+
+   Verify exactly **two `"` characters**.
+
+### Step 3 — Disable User Script Sandboxing
+
+1. Same target → **Build Settings** tab.
+2. Filter buttons: **All** + **Combined**.
+3. Search box: type `sandbox` (short queries match where longer ones sometimes miss).
+4. Find **Build Options → User Script Sandboxing**. Click the value (`Yes`) → set to **No** (for both Debug and Release).
+
+**Why this is safe:** This setting affects only build-time tooling. It does NOT affect the shipped binary's App Sandbox or Hardened Runtime, which remain enabled per the `.entitlements` file. It is not a runtime app capability.
+
+**Why it is necessary:** Xcode 16 default sandboxes Run Scripts so they can only read inside the build directory. These scripts need to read `Scripts/*.sh` (in the source tree) and run `git` (reads `.git/`). Without disabling, builds fail with cryptic "No such file or directory" errors that do not name sandboxing as the cause.
 
 ---
 
-## Verifying It Works
+## Phase 3 — Verification
 
-After setup, run a Debug build and a Release build (Product → Archive) and check:
+1. **`Cmd-B` Debug build.** Should succeed. Build log shows:
+   - `BuildInfo: <timestamp> <sha> dirty=<bool> config=Debug`
+   - `bump_built_info_plist: skipping (CONFIGURATION=Debug)`
+2. **`cat <target_source>/Generated/BuildInfo.swift`** — real values, not `"uninit"`.
+3. **`Cmd-R` run + menu → `About <App>`.** Build line appears in the Credits area, looks like `Build 2605041335 · a7672bc+`.
+4. **Archive once (Release).** Build log shows `bump_built_info_plist: CFBundleVersion = <timestamp>`. The archived `.app`'s Info.plist has the timestamped `CFBundleVersion`; source `CURRENT_PROJECT_VERSION` in `.pbxproj` is unchanged. `git status` is clean afterward (apart from `BuildInfo.swift` if you have not used `--skip-worktree`).
 
-- `git status` after a Debug build shows only the changes you actually made — no `Info.plist` modification
-- `git status` after a Release build/archive shows `Info.plist` modified with the new `CFBundleVersion` (commit this when releasing)
-- `BuildInfo.swift` does not appear in `git status` at all
-- The About screen displays the marketing version, build timestamp, and SHA
-- The displayed SHA gains a `+` if you have any uncommitted change
+---
+
+## Known Gotchas
+
+These were discovered the hard way during the first real implementation. Captured here so future projects do not rediscover them.
+
+### "No such file or directory" on first build
+
+Almost always one of:
+
+1. **Quote stripping during paste.** If you copied the script body from a markdown code block, the surrounding `"` characters may have been stripped. Re-check the script body in Xcode — it must include the literal `"` quotes around each path. Count them: four for the first script, two for the second.
+2. **User Script Sandboxing = YES.** The sandbox blocks the script from reading `Scripts/` and from running `git`. Set the Build Setting to No (Phase 2 Step 3).
+
+### About panel shows wrong-cased app name
+
+The standard `NSApp` About panel uses `CFBundleName`, not `CFBundleDisplayName`. With `GENERATE_INFOPLIST_FILE = YES`, Xcode 16 hardcodes `CFBundleName` to track `PRODUCT_NAME`, which typically uses PascalCase. The dock and menu bar correctly show the lowercase display name from `CFBundleDisplayName`.
+
+Three workarounds (all defer-able unless the casing actually matters):
+
+- Run Script + PlistBuddy override of `CFBundleName` post-generation.
+- Switch to a hand-maintained `Info.plist`.
+- Live with it — the panel still functions.
+
+### `BuildInfo.swift` perpetually shows in `git status`
+
+Expected. The build regenerates it. Three options (already covered in "Decisions" above):
+
+- **Tolerate.** Solo dev, stage by filename, never see it in commits.
+- **`git update-index --skip-worktree`** per clone per developer.
+- **Bundle redesign:** read from `Bundle.main.infoDictionary` instead.
+
+### Synchronized-group projects: skip the "drag into Project Navigator" step
+
+Xcode 16 projects using `PBXFileSystemSynchronizedRootGroup` auto-include any file written into the synchronized folder. The traditional manual drag is a no-op — the file will already be a target member. Verify by opening Build Phases → Compile Sources after the file is created; it should appear without manual addition.
+
+### `.gitignore` and `git add` interact at staging time
+
+If you run `git add <folder>/` and `.gitignore` matches a file inside, the file is silently skipped — no error. To force-track a file that matches `.gitignore`, use `git add -f <path>`.
+
+This bites the placeholder commit if `.gitignore` is added in the same commit. Either commit the placeholder first and add `.gitignore` after, or use `git add -f` once.
 
 ---
 
 ## Things This Template Does NOT Do
 
-- Does not pin a specific timestamp format. `YYYYMMDDHHMM` is the default; a Unix epoch integer or any other monotonic format is equally valid. Pick one and document it in the project's overall directive.
-- Does not handle CI-specific build identification. If a CI system (Xcode Cloud, GitHub Actions, Fastlane) builds the app, the CI environment's build number can replace or supplement the timestamp. Document the CI-specific behaviour in the project's build `CLAUDE.md`.
-- Does not modify the marketing version (`CFBundleShortVersionString`). That stays under human control.
-- Does not add a "copy build identifier to clipboard" affordance to the About screen. Consider adding one — it makes bug reports easier — but it is project-specific UX, not part of this template.
+- **Does not change `MARKETING_VERSION` (`CFBundleShortVersionString`).** That stays under human control.
+- **Does not specify how the About surface integrates into the project's UI.** It provides the build-line content; where and how the About view is presented is a project-specific UX decision.
+- **Does not modify CI configuration.** If the project uses Xcode Cloud, GitHub Actions, or Fastlane, the scripts work as-is on CI runners (they have `git`, `xcrun`, `PlistBuddy`); the only consideration is that CI clones will not have `--skip-worktree` set, so a CI build's working tree shows the `BuildInfo.swift` modification — harmless on CI.
+- **Does not edit `.pbxproj` programmatically.** Run Script phases and Build Settings changes are deliberately left for the human in Xcode UI to avoid risk to project integrity.
 
 ---
 
-*Template status: Updated to standalone-script pattern (matches retrofit prompt).*
+*Template status: Battle-tested via real implementation; bugs found during initial setup folded back in.*
 *Last updated: 2026-05-04.*
