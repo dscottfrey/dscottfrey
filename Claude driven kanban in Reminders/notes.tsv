@@ -1,0 +1,91 @@
+BLOCKER · v1.0 · build · Launch-screen entry in Info.plist	K-001 · The app declares no launch screen, and Xcode refuses to upload a build to TestFlight without one. Nothing ships until this exists. Info.plist
+BLOCKER · v1.0 · build · Diagnostics off by default	K-002 · Developer logging is still switched on, including a log written into iCloud. A public build has to be quiet by default; only the small footer readout is meant to survive. CurlDebug.verbose
+v1.0 · ingest · Duplicate detection on the folder path	K-003 · WIRE — Add a book you already own but have since edited, and you get a second copy on the shelf instead of a match. The code that spots this is written and finished; nothing calls it. §5.2. See also K-025
+v1.2 · sync · Sidecars are never written	K-004 · WIRE — Your highlights, notes and place are meant to be written beside each book as a small companion file, so they travel with the book and survive a reinstall. The writer is finished and never runs. §9.1 Clause 2
+v1.1 · share · Annotation export has no access point	K-005 · WIRE — There is no way to get your highlights and notes out of a book. The exporter is built; it has no button anywhere. §5.3
+v1.2 · sync · Recently Active Books stack unused	K-006 · WIRE — A list of the books you have had open recently exists in the code and appears nowhere in the app. §7.1
+v1.2 · ingest · OPDS is an island	K-007 · WIRE — Codex can talk to an online book catalogue — browse it, search it, download from it — but nothing in the app opens that door. The whole client is built and unreachable. §2.1–2.4. Its screen is K-043
+v1.0 · shelf · Search — shelf and in-book	K-008 · You cannot search anywhere in Codex: not for a book on the shelf, not for a word inside the book you are reading. The largest single absence. §8.4
+v1.0 · shelf · Empty-state buttons do nothing	K-009 · The screen you see when you have no books has two buttons that do nothing when tapped. It is the first thing a new reader meets. §12. Same defect as K-030
+v1.0 · overall · Reading events (ReadingEventStore)	K-010 · Nothing records when you read or for how long, so the app can never show you a reading history. This one cannot be added later — every day that passes without it is a day that can never be reconstructed. §12.1 / OWED O0. Feeds K-047
+v1.0 · render · Margins, gutter, justification	K-011 · You cannot change the page margins, the gap between the two pages, or whether the text is justified. The settings panel exists; these three never moved into it. §2.3
+v1.0 · render · Accessibility pass	K-012 · Codex has never been tested with VoiceOver or with large system text. Whatever works today works by accident. §6
+v1.0 · render · Dark mode design pass	K-013 · Reading at night works, but was never designed — the frame, the board and the ornaments are placeholders in the dark. Gate 2
+v1.0 · render · Run on iPhone once	K-014 · Codex builds for iPhone and has never once been launched on one. Gate 5
+v1.0 · reader · Ruling 3 — only user actions write place	K-015 · Your place in a book should move only when you move it. Six of the eleven things that can write it are not you — which is how you come back to the wrong page. Module 7 §3. Same issue as K-054
+v1.0 · manual · Manual: stubs + not-yet-implemented	K-016 · The manual describes five things the app does not actually do yet. It ships as the first book on your shelf, so it must not promise what is not there. Round 3 claims A, F, G, H, I
+v1.0 · manual · Amend §11 for the manual-on-the-shelf	K-017 · The plan says the manual lives on your shelf as a real book. The directive it belongs to currently forbids exactly that. One of the two has to change. Module 8 §4
+v1.1 · reader · Highlight appears only on re-photograph	K-018 · Highlight a passage and the highlight does not appear until the page is photographed again. What was recorded is correct — only the picture lags. Backlog 1
+v1.1 · render · Reader-facing curl palette + angle	K-019 · The page-turn's colour and angle are set with developer sliders. A version of those controls fit for a reader was never designed. Backlog 2
+v1.1 · reader · Detect an iOS-killed web process	K-020 · If iOS quietly kills the part of the app that draws pages, Readium reloads and says nothing — so Codex carries on believing you are where you were. Backlog 3
+v1.1 · formats · CBZ / comics	K-021 · Comic-book archives (CBZ) cannot be opened. The parser underneath already handles the format; nothing above it does. Backlog 4
+v1.1 · formats · PDF, scroll-only spike	K-022 · PDFs cannot be opened at all, including the ones you have that will not convert to epub. Backlog 5
+v1.1 · reader · Render thread for the curl	K-023 · A proposal to move the page-turn animation onto its own thread. Parked deliberately: the evidence said it was the wrong cure for the stutter. Backlog 6
+v1.1 · shelf · Bookshelf performance (covers, indexer)	K-024 · Every cover is decoded from scratch each time the shelf draws, and nothing is remembered between times. On a large shelf, that is the slowness you feel. Backlog 7
+v1.1 · ingest · The same book, edited — merge prompt	K-025 · Add an edited copy of a book you already have and Codex should ask whether to merge the two — which needs your ruling on what a merge keeps. Backlog 8. Detection is K-003
+v1.1 · shelf · CoverFlow browser + See all	K-026 · A browse-by-cover view of the shelf, and the See all route into it. Both buttons were taken out when it was deferred. Backlog 9
+v1.1 · shelf · Bulk select	K-027 · You cannot select several books at once, so deleting or sharing more than one means doing it one at a time. §9.1–9.3
+v1.1 · shelf · Context menu on long press	K-028 · Long-pressing a book on the shelf does nothing. §10
+v1.1 · shelf · Ghost record "Remove"	K-029 · When a book's file goes away its record stays on the shelf, and there is no way to erase it. §7
+v1.1 · shelf · Book Detail placeholder buttons	K-030 · A book's detail screen has three buttons that do nothing: File…, Force Re-upload, Reset Progress. §11. Same defect as K-009
+v1.1 · render · Inline image lightbox	K-031 · Tapping a picture inside a book does nothing — it cannot be opened larger. Fully specified, no code written. 01.1 §A1
+v1.1 · render · Font catalogue from the device	K-032 · The typography panel offers a fixed list of fonts written into the app. The fonts actually installed on your iPad are never consulted. §2.4
+v1.1 · render · Advanced settings	K-033 · A planned second layer of the settings panel, for controls that should not face a reader. §4.5
+v1.1 · render · "More" menu in reader chrome	K-034 · A planned More menu in the reader's chrome. Nothing behind it yet. §4.7
+v1.1 · ingest · Keep on device / keep local only	K-035 · No way to tell Codex to keep a particular book on the iPad rather than let iCloud reclaim the space. §8.3, §8.5
+v1.1 · ingest · Manual file replacement, batch recovery	K-036 · No way to point a shelf record at a replacement file, and no way to recover a batch of books that failed to come in. §8.4, §8.6
+v1.1 · ingest · "Still downloading" on the open path	K-037 · Tap a book iCloud has not finished downloading and the app simply waits, with nothing on screen to say so. The manual already promises it tells you. §8.2
+v1.1 · manual · Open the Manual (Settings › About)	K-038 · Once you have closed the manual there is no way to open it again — no entry in Settings, nowhere else either. Ruled, never built. Module 8 §5a
+v1.1 · manual · Restore the manual on an empty folder	K-039 · If your book folder is empty the manual should reappear in it. Ruled, never built. Module 8 §5.2
+v1.2 · sync · Field encryption (§9.1) before any sync	K-040 · Before anything syncs to iCloud, the private parts of it have to be encrypted. This cannot be added afterwards — anything already synced in the clear stays that way. Ships with K-004 or not at all
+v1.2 · sync · CloudKit sync — Module 4 entire	K-041 · Your books, places and notes do not travel between devices at all. The whole of Module 4. Gated on K-040 and K-004
+v1.2 · reader · Reading place as selector + words	K-042 · Your place is remembered as a rough position in the file. Remembering the actual sentence instead would survive a font change, a re-flow, or a different device. Module 7 §6
+v1.2 · ingest · OPDS browser + Sources tab	K-043 · The screen for browsing an online catalogue, and the Sources tab that reaches it. §2.3, §13. The client behind it is already built: K-007
+v1.2 · ingest · Genre, from OPDS tags by book id	K-044 · Books have no genre. Catalogue servers carry genre tags and can supply them later; a book that never came from one falls back to whatever the epub itself declares.
+v1.2 · sync · Follow Me / Stay Here, quick switch	K-045 · With two devices, no way to say follow my place or leave me where I am, and no quick way to switch between them. §7.2–7.4
+v1.2 · sync · Finished? prompt surfaced	K-046 · Codex can tell when you have finished a book, and never asks. The detection is built; the question is not. §13
+v2 · overall · Annual reading report UI	K-047 · A year-in-reading summary. The events it would be built from are K-010, which is v1.0 — this is not. §12.1
+v2 · overall · Reading focus / kiosk mode	K-048 · A mode that locks the iPad to reading and nothing else. §12.2
+v2 · sync · Apple Intelligence assist	K-049 · Some use of on-device intelligence, not yet specified. §7.5
+v2 · share · Codex-to-Codex direct transfer	K-050 · Sending a book straight to another Codex nearby, with no file in between.
+v1.0 · render · §3 describes a Core Image compositor	K-051 · DRIFT — The rendering directive describes a page-turn built on Core Image. The app builds it on Readium, a screenshot and Metal instead. The document was never updated; the code is almost certainly the right one. §3
+v1.0 · ingest · Two ingestion paths, one live	K-052 · DRIFT — Two separate routes for getting a book into the library exist in the code, and only one of them runs. The other is left over from before folder-as-shelf.
+v1.0 · shelf · §8.3 Collections vs folder-as-shelf	K-053 · DRIFT — The directive describes Collections you make yourself. The app uses iCloud folders as shelves instead, and the Collections code sits unused. One of the two should go. §8.3
+v1.0 · reader · Module 7 Ruling 3 not enforced	K-054 · DRIFT — The same issue as K-015, from the documents' side: Module 7 states a rule about your reading place that the code does not follow.
+v1.1 · docs · Undirected subsystems	K-055 · DRIFT — Five working parts of the reader were never written down as a design, only described in the daily log. Nothing is broken; but if one needs changing, there is no spec to check it against. HANDOFF §13.x
+v1.0 · docs · BookContentBlocker has no directive	K-056 · DRIFT — Codex stops books from calling out to the internet, and the manual promises exactly that. The promise is specified nowhere but a single ledger entry. HANDOFF §13.70
+render · Immersive page curl (Metal)	K-057 · 01.1 §A2, past spec in places
+render · Orientation-driven mode selection	K-058 · §2.6
+render · Scroll mode on the Navigator	K-059 · Gate 1
+render · Skeuomorphic frame, board, ornaments	K-060 · §2.9
+render · Typography panel + first-open prompt	K-061 · §4.6
+render · Footer: page, percent, pages left	K-062 · §4.4
+render · Chapter popup on the scrubber	K-063 · partial for §4.3
+render · Open new books at the story	K-064 · 2026-08-26
+render · Both ends of the book lift onto board	K-065 · 2026-08-26
+reader · Text selection + Immersive hand-off	K-066 · §3.6, addendum §3.1
+reader · In-book links on the photograph	K-067 · HANDOFF §13.69
+reader · The way back (U-turn) after a jump	K-068 · §6
+annot · Highlights, notes, margin notes	K-069 · Module 6 §2
+annot · Bookmarks + printed ribbon	K-070 · §2.3
+annot · Highlight Back to Previous	K-071 · §3.3
+annot · One panel: highlights and bookmarks	K-072 · §4
+share · Share a quote with attribution	K-073 · Module 5 §4.1, gate 3
+share · Text formatting engine (RTF/HTML)	K-074 · §3
+share · Share the epub file	K-075 · §2.1 — wired 2026-08-26
+shelf · Folders are shelves	K-076 · 2026-08-26
+shelf · Finished shelf	K-077 · 2026-08-26
+shelf · Delete a book from the list	K-078 · §5 — 2026-08-26
+shelf · Filter tabs + sorting	K-079 · §8.1, §8.2
+shelf · Now Reading uses a fact, not a position	K-080 · 2026-08-26
+ingest · Folder-as-bookshelf	K-081 · Addendum A
+ingest · Open in Codex / AirDrop / Add Book	K-082 · §4.1–4.3
+ingest · DRM detection	K-083 · §5.1
+ingest · Cover extraction + generated covers	K-084 · §5.4
+privacy · Books cannot phone home	K-085 · HANDOFF §13.70 — no directive
+privacy · No analytics, sanctioned egress only	K-086 · Module 5 §8
+reader · The one-second stall, fixed	K-087 · 2026-08-25
+reader · Frame throttle off the main actor	K-088 · 2026-08-26
+reader · Teardown ledger + criteria	K-089 · 2026-08-26
+docs · OWED register + harvester	K-090 · 2026-08-26
+manual · The manual as a real epub	K-091 · scripts/build_manual_epub.py

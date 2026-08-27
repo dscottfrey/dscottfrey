@@ -1,0 +1,92 @@
+K-001		K-001 · Small — The app declares no launch screen, and Xcode refuses to upload a build to TestFlight without one. Nothing ships until this exists. Info.plist
+K-002		K-002 · Small — Developer logging is still switched on, including a log written into iCloud. A public build has to be quiet by default; only the small footer readout is meant to survive. CurlDebug.verbose
+K-003		K-003 · WIRE · Medium — Add a book you already own but have since edited, and you get a second copy on the shelf instead of a match. The code that spots this is written and finished; nothing calls it. §5.2. See also K-025
+K-004	v1.0 · sync · Sidecars are never written	K-004 · WIRE · Small — Your highlights, notes and place are meant to be written beside each book as a small companion file, so they travel with the book and survive a reinstall. The writer is finished and never runs. §9.1 Clause 2
+K-005		K-005 · WIRE · Small — There is no way to get your highlights and notes out of a book. The exporter is built; it has no button anywhere. §5.3
+K-006		K-006 · WIRE · Medium — A cross-device stack: which books you had open, where you were in each, and WHICH DEVICE you were on. Not the Now Reading shelf, which is local and device-blind. Built, nothing calls it. §7.1
+K-007	v1.1 · ingest · OPDS is an island	K-007 · WIRE · Small — Codex can fetch an online catalogue, read it, and download a book from it. None of that is reachable, because there is no screen. This card is the engine only; the visible half is K-043 and it is not small. §2.1–2.4
+K-008		K-008 · Large — You cannot search anywhere in Codex: not for a book on the shelf, not for a word inside the book you are reading. The largest single absence. §8.4
+K-009		K-009 · Small — The screen you see when you have no books has two buttons that do nothing when tapped. It is the first thing a new reader meets. §12. Same defect as K-030
+K-010		K-010 · Medium — Nothing records when you read or for how long, so the app can never show you a reading history. This one cannot be added later — every day that passes without it is a day that can never be reconstructed. §12.1 / OWED O0. Feeds K-047
+K-011		K-011 · Medium — You cannot change the page margins, the gap between the two pages, or whether the text is justified. The settings panel exists; these three never moved into it. §2.3
+K-012		K-012 · Large — Codex has never been tested with VoiceOver or with large system text. Whatever works today works by accident. §6
+K-013		K-013 · Medium — Reading at night works, but was never designed — the frame, the board and the ornaments are placeholders in the dark. Gate 2
+K-014		K-014 · Medium — Codex builds for iPhone and has never once been launched on one. Gate 5
+K-015		K-015 · Large — Your place in a book should move only when you move it. Six of the eleven things that can write it are not you — which is how you come back to the wrong page. Module 7 §3. Same issue as K-054
+K-016		K-016 · Medium — The manual describes five things the app does not actually do yet. It ships as the first book on your shelf, so it must not promise what is not there. Round 3 claims A, F, G, H, I
+K-017		K-017 · Small — The plan says the manual lives on your shelf as a real book. The directive it belongs to currently forbids exactly that. One of the two has to change. Module 8 §4
+K-018		K-018 · Medium — Highlight a passage and the highlight does not appear until the page is photographed again. What was recorded is correct — only the picture lags. Backlog 1
+K-019		K-019 · Medium — The page-turn's colour and angle are set with developer sliders. A version of those controls fit for a reader was never designed. Backlog 2
+K-020		K-020 · Medium — If iOS quietly kills the part of the app that draws pages, Readium reloads and says nothing — so Codex carries on believing you are where you were. Backlog 3
+K-021		K-021 · Large — Comic-book archives (CBZ) cannot be opened. The parser underneath already handles the format; nothing above it does. Backlog 4
+K-022		K-022 · Extra Large — PDFs cannot be opened at all, including the ones you have that will not convert to epub. Backlog 5
+K-023		K-023 · Large — A proposal to move the page-turn animation onto its own thread. Parked deliberately: the evidence said it was the wrong cure for the stutter. Backlog 6
+K-024		K-024 · Medium — Every cover is decoded from scratch each time the shelf draws, and nothing is remembered between times. On a large shelf, that is the slowness you feel. Backlog 7
+K-025		K-025 · Large — Add an edited copy of a book you already have and Codex should ask whether to merge the two — which needs your ruling on what a merge keeps. Backlog 8. Detection is K-003
+K-026		K-026 · Large — A browse-by-cover view of the shelf, and the See all route into it. Both buttons were taken out when it was deferred. Backlog 9
+K-027	v1.0 · shelf · Bulk select	K-027 · Medium — You cannot select several books at once, so deleting or sharing more than one means doing it one at a time. §9.1–9.3
+K-028		K-028 · Small — Long-pressing a book on the shelf does nothing. §10
+K-029		K-029 · Small — When a book's file goes away its record stays on the shelf, and there is no way to erase it. §7
+K-030		K-030 · Medium — A book's detail screen has three buttons that do nothing: File…, Force Re-upload, Reset Progress. §11. Same defect as K-009
+K-031		K-031 · Medium — Tapping a picture inside a book does nothing — it cannot be opened larger. Fully specified, no code written. 01.1 §A1
+K-032		K-032 · Small — The typography panel offers a fixed list of fonts written into the app. The fonts actually installed on your iPad are never consulted. §2.4
+K-033		K-033 · Large — A planned second layer of the settings panel, for controls that should not face a reader. §4.5
+K-034		K-034 · Medium — A planned More menu in the reader's chrome. Nothing behind it yet. §4.7
+K-035		K-035 · Medium — No way to tell Codex to keep a particular book on the iPad rather than let iCloud reclaim the space. §8.3, §8.5
+K-036		K-036 · Medium — No way to point a shelf record at a replacement file, and no way to recover a batch of books that failed to come in. §8.4, §8.6
+K-037	v1.0 · ingest · "Still downloading" on the open path	K-037 · Small — Tap a book iCloud has not finished downloading and the app simply waits, with nothing on screen to say so. The manual already promises it tells you. §8.2
+K-038		K-038 · Small — Once you have closed the manual there is no way to open it again — no entry in Settings, nowhere else either. Ruled, never built. Module 8 §5a
+K-039		K-039 · Small — If your book folder is empty the manual should reappear in it. Ruled, never built. Module 8 §5.2
+K-040	v1.0 · sync · Field encryption (§9.1) before any sync	K-040 · Large — Before anything syncs to iCloud, the private parts of it have to be encrypted. This cannot be added afterwards — anything already synced in the clear stays that way. Ships with K-004 or not at all
+K-041	v1.0 · sync · CloudKit sync — Module 4 entire	K-041 · Extra Large — Your books, places and notes do not travel between devices at all. The whole of Module 4. Gated on K-040 and K-004
+K-042	v1.0 · reader · Reading place as selector + words	K-042 · Large — Your place is remembered as a rough position in the file. Remembering the actual sentence instead would survive a font change, a re-flow, or a different device. Module 7 §6
+K-043	v1.1 · ingest · OPDS browser + Sources tab	K-043 · Large — The screen for browsing an online catalogue: source list, moving through a feed, search, download progress, handing the book to ingestion. The engine is built already (K-007); this is the visible half. §2.3
+K-044		K-044 · Medium — Books have no genre. Catalogue servers carry genre tags and can supply them later; a book that never came from one falls back to whatever the epub itself declares.
+K-045		K-045 · Large — With two devices, no way to say follow my place or leave me where I am, and no quick way to switch between them. §7.2–7.4
+K-046		K-046 · Small — Codex can tell when you have finished a book, and never asks. The detection is built; the question is not. §13
+K-047		K-047 · Large — A year-in-reading summary. The events it would be built from are K-010, which is v1.0 — this is not. §12.1
+K-048		K-048 · Medium — A mode that locks the iPad to reading and nothing else. §12.2
+K-049		K-049 · Extra Large — Some use of on-device intelligence, not yet specified. §7.5
+K-050		K-050 · Extra Large — Sending a book straight to another Codex nearby, with no file in between.
+K-051		K-051 · DRIFT · Small — The rendering directive describes a page-turn built on Core Image. The app builds it on Readium, a screenshot and Metal instead. The document was never updated; the code is almost certainly the right one. §3
+K-052		K-052 · DRIFT · Medium — Two separate routes for getting a book into the library exist in the code, and only one of them runs. The other is left over from before folder-as-shelf.
+K-053		K-053 · DRIFT · Medium — The directive describes Collections you make yourself. The app uses iCloud folders as shelves instead, and the Collections code sits unused. One of the two should go. §8.3
+K-054		K-054 · DRIFT · Small — The same issue as K-015, from the documents' side: Module 7 states a rule about your reading place that the code does not follow.
+K-055	v1.0 · docs · Undirected subsystems	K-055 · DRIFT · Large — Five working parts of the reader were never written down as a design, only described in the daily log. Nothing is broken; but if one needs changing, there is no spec to check it against. HANDOFF §13.x
+K-056		K-056 · DRIFT · Small — Codex stops books from calling out to the internet, and the manual promises exactly that. The promise is specified nowhere but a single ledger entry. HANDOFF §13.70
+K-057		K-057 · 01.1 §A2, past spec in places
+K-058		K-058 · §2.6
+K-059		K-059 · Gate 1
+K-060		K-060 · §2.9
+K-061		K-061 · §4.6
+K-062		K-062 · §4.4
+K-063		K-063 · partial for §4.3
+K-064		K-064 · 2026-08-26
+K-065		K-065 · 2026-08-26
+K-066		K-066 · §3.6, addendum §3.1
+K-067		K-067 · HANDOFF §13.69
+K-068		K-068 · §6
+K-069		K-069 · Module 6 §2
+K-070		K-070 · §2.3
+K-071		K-071 · §3.3
+K-072		K-072 · §4
+K-073		K-073 · Module 5 §4.1, gate 3
+K-074		K-074 · §3
+K-075		K-075 · §2.1 — wired 2026-08-26
+K-076		K-076 · 2026-08-26
+K-077		K-077 · 2026-08-26
+K-078		K-078 · §5 — 2026-08-26
+K-079		K-079 · §8.1, §8.2
+K-080		K-080 · 2026-08-26
+K-081		K-081 · Addendum A
+K-082		K-082 · §4.1–4.3
+K-083		K-083 · §5.1
+K-084		K-084 · §5.4
+K-085		K-085 · HANDOFF §13.70 — no directive
+K-086		K-086 · Module 5 §8
+K-087		K-087 · 2026-08-25
+K-088		K-088 · 2026-08-26
+K-089		K-089 · 2026-08-26
+K-090		K-090 · 2026-08-26
+K-091		K-091 · scripts/build_manual_epub.py
+K-092		K-092 · Small — The Now Reading shelf does not say whether you last read a book on the iPad or the iPhone. The position record already carries the device name, so this is a marker on the cover, not new plumbing. Needs K-041.
