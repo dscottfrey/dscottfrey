@@ -1,13 +1,21 @@
-Read CLAUDE.md in this workspace before doing anything else.
+Read CLAUDE.md in this repo before doing anything else. If the assistant memory directory is empty or missing, run ./scripts/link-claude-memory.sh first.
 
-Then read Docs/00_OVERALL_DIRECTIVE.md for full project context.
+Then read Docs/RESUME.md — its newest section is marked START HERE and is the only file guaranteed to be current. Read the HANDOFF.md sections it points at, not the whole file.
 
-Before working on any specific module or feature, read the directive for that module. The directive is the spec — do not implement anything not covered in it without surfacing the gap first.
+Before working on any specific module or feature, read the directive for that module, and load the project skill if the work touches the dependency it covers. The directive is the spec — do not implement anything not covered in it without surfacing the gap first.
+
+Before building anything, check whether it already exists: grep for the type or phrase, read the directive (not the board card), and check for zero callers.
 
 Once you have read the relevant files, summarise:
 - What this project is
-- What the current build status is
+- The build in the tree (stamp and commit) and whether a test round is open
+- Whether the shipped source exists in only one place (an unpushed branch), and anything in the last shipped build that was never run
+- Anything RESUME says to raise unprompted (a "remind me on resume" item, decisions the owner owes)
 - What module or feature we are working on today
 - Any open questions in the relevant directive that need resolving before you can proceed
 
-Then wait for direction. Do not start writing code until you have confirmed the plan.
+Then wait for direction. Do not start writing code until the plan is confirmed.
+
+Two standing rules for the session: anything on disk — data files, logs, the database — you read and report yourself; and a diagnosis you have not verified from source or measured is said as a guess.
+
+[Prompt revised 2026-09-04, Icarus: the two unpushed/unproven bullets, the raise-unprompted bullet, and the two standing rules. Safe to paste as-is.]

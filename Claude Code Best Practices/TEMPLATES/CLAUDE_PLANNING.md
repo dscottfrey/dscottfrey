@@ -1,5 +1,20 @@
 # [Project Name] — Planning Project
 
+> **Two-workspace variant (historical).** This template is for projects that keep a
+> separate Cowork planning workspace with `Docs/` copied into the build project. Codex
+> abandoned that model within weeks — the copy step was the failure point, and the real
+> rulings were made mid-build anyway. The recommended model is **one repo, one terminal**:
+> `Docs/`, the assistant's memory and the skills all live in the project repository,
+> `Docs/RESUME.md` is the start-here file, and there is no sync step. See
+> `01_PLANNING_WORKFLOW.md` — "One Repo, One Terminal". Use this file only if a separate
+> planning environment is a deliberate choice, and make the sync step a script, not a
+> reminder.
+>
+> *(Revised 2026-09-04, Icarus: a second project seeded this way dropped the copy step
+> just as fast; its overall directive still contains the sentence "`Docs/` is copied
+> wholesale from the planning workspace before any build session", which no session has
+> performed since the first week. Two projects, one outcome.)*
+
 ## What This Folder Is
 
 This is the **planning workspace** for [Project Name]. Work here consists of discussing features, making design decisions, and maintaining the directive files that specify how the app should be built.

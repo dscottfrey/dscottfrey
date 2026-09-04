@@ -8,7 +8,13 @@ This is set up immediately after creating a new Xcode project, before any meanin
 
 ## Status of This Reference
 
-This template currently describes the **self-signed certificate** approach. When the project owner has a paid Apple Developer Program membership and a Developer ID Application certificate, the procedure here will be revised — the principle in `02_DEVELOPMENT_PHILOSOPHY.md` ("Development Signing Doesn't Expire") stays the same, but the implementation can use the Apple-issued cert directly. Until that point, self-signing is the right tool for development; it is *never* the right tool for distribution (which requires Developer ID + notarization regardless).
+**Revised 2026-09-04.** This template describes the **self-signed certificate** path — the fallback for an owner who does not yet have a paid Apple Developer Program membership. It is no longer the primary path.
+
+The primary path, since the Codex owner's membership activated on 2026-05-11, is Xcode's automatic signing against the real team (`CODE_SIGN_STYLE = Automatic`, `DEVELOPMENT_TEAM = <team id>`). Apple Development certificates under a paid team still show a one-year date, but Xcode renews them silently during a normal build and nothing is revoked underneath you; Codex has built to three devices for four months this way without one signing interruption. Under that path none of the procedure below is needed, there is no Debug-only library-validation exception, and there is no "switch signing back before archiving" step.
+
+Use this template only until the membership exists. The principle in `02_DEVELOPMENT_PHILOSOPHY.md` ("Development Signing Doesn't Expire") is unchanged; both paths satisfy it and Personal Team does not. Self-signing is *never* the right tool for distribution, which requires an Apple-issued identity regardless.
+
+**macOS, outside the App Store *(Revised 2026-09-04, Icarus)*:** Icarus — the project this template's original "revise when the Developer ID cert arrives" note was written for — has used the **Developer ID Application** identity for every build, local and release, since its first day, with Hardened Runtime on and App Sandbox off (a recorded, reasoned decision in its overall directive). No signing interruption in four months; no switch-back step; release is notarize → staple → validate → hand over (`TEMPLATES/RELEASE_CHECKLIST.md` §F). The self-signed procedure below was never needed there. Note also that a Developer ID build *runs* on another Mac without notarization — only the quarantine flag matters — which makes a same-day check cheap; notarization is for what the customer keeps.
 
 ---
 
@@ -232,4 +238,4 @@ In any project with milestone-based release tracking, make this an explicit step
 
 *Template status: Battle-tested via real implementation; bugs found during initial setup folded back in.*
 *Last updated: 2026-05-04.*
-*Will be revised when the project owner has a paid Developer Program membership and a Developer ID Application certificate.*
+*~~Will be revised when the project owner has a paid Developer Program membership and a Developer ID Application certificate.~~ Done — 2026-09-04 (Codex, paid team; Icarus, Developer ID on macOS). The self-signed procedure stays as the fallback.*

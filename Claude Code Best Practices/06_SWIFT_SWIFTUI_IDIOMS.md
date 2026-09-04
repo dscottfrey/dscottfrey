@@ -37,6 +37,23 @@ This file applies if **all** of the following are true for the project:
 
 If your project targets older iOS or uses UIKit primarily, see "Older Target Adjustments" — many rules still apply, some don't.
 
+**What Codex did with this file (2026-09-04).** Codex targets iOS 17, not 26, and its reading surface is UIKit-hosted by necessity — a `WKWebView` inside Readium's UIKit navigator, photographed into a Metal page-curl. So two of the four "Core Targeting" lines were overridden on day one, deliberately, and recorded in the overall directive. Everything else in this file held. The lesson is that the file is a *default*, not a gate: a project that must override a line says so once in its directive and then applies the rest without apology. The audit below is how the rest got enforced.
+
+### Run the Idioms as an Audit, Not Only as a Rule
+
+Rules read at the start of a session do not survive a long build. What worked on Codex was running the whole tree through an expert-review skill (`swiftui-pro`) as a scheduled AUDIT — the first one on 2026-09-02, after a view had to be split into five files to compile (`Docs/AUDIT_2026-09-02_SWIFTUI.md` in the Codex repo). Nothing it found failed to compile; everything was behaviour, accessibility, performance or hygiene, which is exactly the class of defect a rule list does not catch on its own. The recurring findings, worth checking for in any SwiftUI project before a release:
+
+- **Custom controls invisible to VoiceOver.** A hand-built slider had no accessibility element, value or adjustable action — a VoiceOver reader could not move through the book at all. Every custom control needs `.accessibilityElement()`, a label, a value and `.accessibilityAdjustableAction` where it adjusts.
+- **Rows and cells that are taps, not buttons.** `onTapGesture` on a list row announces as text. Wrap in `Button` with `.plain` style — the same rule as "Buttons, not `onTapGesture`" above, found in the wild.
+- **Swallowed errors on user actions.** `try?` on a save or a copy that the user just asked for does nothing on failure. Log at least; surface where the user can act.
+- **Dead UI drawn every frame** and **work in `body`** — filters run four times per render, a fetch inside a sheet builder, an `UIImage(systemName:)` probe per render. `body` is read constantly; anything that costs moves out of it.
+- **Stale comments after a split.** Splitting a view across files strands its essay-comments beside code that moved. `02`'s "Never Lie in a Comment" applies with force after every refactor.
+- **Fixed font sizes on chrome glyphs** (`.system(size:)` everywhere) and **Reduce Motion honoured nowhere.** The first is `@ScaledMetric`; the second is a design decision the owner must make (Codex: a curl-less instant flick, K-150), not something to bolt on.
+
+Schedule the audit — after a large refactor, before the first TestFlight, and whenever the owner asks — and file its findings as cards, not as a to-do in the audit file.
+
+**What Icarus did with this file *(Revised 2026-09-04, Icarus)*.** Icarus is macOS 15, not iOS, and copied this file into its `Docs/` as `99_SWIFT_SWIFTUI_IDIOMS.md`, rescoped: an "all rules apply at macOS 15" table replaced the older-target table (every row green), a SwiftLint section was added (below), and a "Local Divergences" list records the four deliberate overrides — one `DispatchQueue` for the vendor SDK's serial queue (the SDK's threading model expects it), direct `NSWindow` use for the borderless instrument-output window, hardcoded font sizes after accessibility was de-scoped for a single-user app, and `NSScreen` for window placement only. Each names the directive section that holds its rationale. The owner's standing rule for the project: *"Paul Hudson is better at this than I am — you should always load that skill"* — so `swiftui-pro` runs on every SwiftUI change, unprompted, with the directive winning and the conflict surfaced when the two disagree. Icarus's whole-tree audit (2026-06-17: ~35 files in five parallel groups, findings only, nothing auto-applied) found no High-severity defect and the same hygiene classes Codex did; the two accessibility themes were then dropped as findings by owner decision, recorded in the audit file itself.
+
 ---
 
 ## Core Targeting
@@ -143,13 +160,40 @@ Specific applications:
 
 ## SwiftData Conditional Rules
 
-**Apply only if the project uses SwiftData with CloudKit sync.** SwiftData without CloudKit does not have these constraints. If your app does not use SwiftData at all, skip this section.
+**Apply only if the project uses SwiftData with CloudKit sync.** ~~SwiftData without CloudKit does not have these constraints.~~ **Corrected 2026-09-04, Icarus: that sentence was wrong.** The three CloudKit rules below do not apply without CloudKit, but SwiftData *without* CloudKit has constraints of its own that cost Icarus its lab's data twice. They follow the CloudKit list. If your app does not use SwiftData at all, skip this section.
 
 CloudKit imposes constraints on SwiftData that the SwiftData API does not enforce at compile time but will surface as runtime crashes or sync failures:
 
 - **Never use `@Attribute(.unique)`.** CloudKit does not support unique constraints; the model will not sync.
 - **Model properties must have default values or be marked optional.** CloudKit deserialization can hand the app a partially-populated record; properties without defaults that are not optional will crash on decode.
 - **All relationships must be marked optional.** Same reason.
+
+### SwiftData without CloudKit — learned on Icarus *(Revised 2026-09-04, Icarus)*
+
+The architecture-level rules (a new schema gets a new file, never mutate the only copy, backfill and assert reachability) are in `05_ARCHITECTURE_DECISIONS.md`. The platform details:
+
+- **Always pass an explicit store `url:` under a folder named for the app.** An unsandboxed app with a bare `ModelConfiguration` gets `~/Library/Application Support/default.store` — *shared with every other unsandboxed SwiftData app on the machine*. On 2026-07-08 a Markdown editor on the same Macs wrote its own tables over Icarus's store; SwiftData could not reconcile the foreign schema, recreated an empty one, and a seeder filled it with blanks. First blamed on migration.
+- **Automatic lightweight migration can wipe a store on an additive change**, and it did so on the lab Mac and not the dev Mac (2026-06-17). A naive `VersionedSchema` that lists the same live types hashes identically ("duplicate version checksums"). Icarus retired in-place migration entirely for copy-forward versioned files.
+- **Bidirectional `@Relationship` inverse arrays are quadratic at scale.** Rebuilding 74,706 rows through them reached 58 GB of memory and never finished; a cascade delete hung. The fix was scalar foreign keys on the row (`experimentUniqueId`, `bayNumber`), compound `#Index`es on them, and every query predicated DB-side on the scalars — with the relationships *kept*, because removing a field is the change class that wipes stores, and retired at a future major bump. Production scale for a 90-day run is ~800k rows; a relationship-predicate fetch (`$0.experiment?.id == id`) is an unindexed scan.
+- **Rows created by a rebuild may set only the scalars, leaving the relationship nil** — so a SQL join on the relationship column returns zero for a recovered experiment and looks exactly like a failed import. Count by the scalar. The assistant raised a false alarm on the owner this way (2026-07-30).
+- **Bounded memory over months:** per-cycle writes go through a throwaway `ModelContext`; reads page (2,000 rows at a time) and never load a whole table; a background context for heavy scans so the UI does not freeze — and note that moving a scan off the main actor does not make it incremental (Icarus's chart still rescans all history every cycle).
+- **Read the store directly when diagnosing:** `sqlite3 "file:<path>?mode=ro"`. Merge the WAL first (`PRAGMA wal_checkpoint(TRUNCATE)`) when reading a backup copy.
+
+---
+
+## macOS Notes — learned on Icarus *(Revised 2026-09-04, Icarus)*
+
+Rules above are iOS-flavoured. Icarus is a single-window macOS instrument with a second, borderless display window it must never lose. What the platform taught it, each paid for:
+
+- **`NSScreen.main` is the screen with keyboard focus, not the primary display — and it is `nil` when the app has no key window.** `screens.first { $0 != NSScreen.main }` therefore returns the *primary* display whenever the app is not frontmost. Use `CGMainDisplayID()` for "primary", and store a display by `CGDisplayCreateUUIDFromDisplayID` (survives reboots) rather than its numeric id (reassigned). Never overwrite a remembered display choice with `nil` because a lookup missed — one failed resolve becomes a permanently erased preference.
+- **SwiftUI re-applies a `WindowGroup` window's `collectionBehavior` after `viewDidMoveToWindow`**, so a one-shot `NSWindow` tweak from a window accessor is clobbered. Re-assert on `NSWindow.didBecomeKeyNotification`, and remove the menu command by its action selector as well (`toggleFullScreen:`, `hide:`), re-applied on `applicationDidBecomeActive`.
+- **A plain `WindowGroup` silently installs File ▸ New Window (⌘N)**, which opens a second root view in-process against the same store. Per-process single-instance guards cannot see it. `CommandGroup(replacing: .newItem) {}` removes it — and then **removing ⌘N and ⌘W obliges `.defaultLaunchBehavior(.presented)` on the main `WindowGroup`** and `.restorationBehavior(.disabled)` on transient editor `WindowGroup`s, or a build swap with an editor open restores only the editor and leaves the app with no main window and no way to make one.
+- **⌘H orders out every window, including an instrument-output `NSWindow`**, and the display-loss detector does not notice because the display is still present. `canHide = false` on that window, plus remove the Hide command.
+- **For a borderless window at screen-saver level:** `isReleasedWhenClosed = false` (ARC must be the sole owner or the first mouse move crashes), `orderOut(nil)` rather than `close()` (the teardown path leaves cursor-tracking state dirty), and `NSApp.activate` after dismissing so the main window reclaims the menu bar. Icarus inherited all three from a predecessor project and documents each *"do not remove this line"* in place.
+- **`SMAppService.mainApp` registers whatever bundle is running** — including the DerivedData product of an Xcode run, which will rot or auto-launch a stale debug build at login. Guard on whether the bundle path is a build product; test login items from an installed copy.
+- **`Color.clear` as a layout placeholder is flexible in *both* axes.** Pinning its width leaves its height unbounded, so it absorbs whatever a tall sibling forces into the row. A reserved column is an `EmptyView`.
+- **`@Observable` fires on assignment, not on change.** A pad-rotation timer reassigning two observed properties ten times a second re-rendered the whole shell continuously, dropping clicks and delaying alarms by minutes, worsening over a day (2026-07-23). Throttle the *observed* republish to what the eye needs (~1 Hz) and keep the unobserved AppKit paint at full rate.
+- **A root view at the type-checker's complexity limit** cannot take another inline `onChange`. Add watchers as `ViewModifier`s.
 
 ---
 
@@ -196,7 +240,7 @@ For projects targeting iOS 16 or earlier, drop the rules that require newer iOS 
 The following choices differ from the upstream `SwiftAgents/AGENTS.md` and are deliberate:
 
 - **Omitted: "Role: Senior iOS Engineer" framing.** The kit's existing `CLAUDE.md` templates and `02_DEVELOPMENT_PHILOSOPHY.md` already establish Claude's role and communication style (including "explain in plain English to a non-developer owner"). The "Senior Engineer" persona conflicts with that audience-awareness — kept the substantive technical rules, dropped the persona.
-- **Omitted: SwiftLint section.** The owner does not currently use SwiftLint. Most of what SwiftLint would catch is covered by the rules in this file. HANDOFF tracks SwiftLint adoption as a deferred decision; if adopted, this section gets added back.
+- **Omitted: SwiftLint section.** The owner does not currently use SwiftLint. Most of what SwiftLint would catch is covered by the rules in this file. HANDOFF tracks SwiftLint adoption as a deferred decision; if adopted, this section gets added back. **Adopted on Icarus from day one *(Revised 2026-09-04, Icarus)*:** `brew install swiftlint`, a `.swiftlint.yml` that disables `todo` and `identifier_name`, opts into `force_unwrapping`, `unused_import` and the length rules as gentle pressure toward "one file, one job", and excludes the vendored SDK and the generated build-info file; a Run Script phase before Compile Sources. Warnings show in the Issue Navigator, errors fail the build, and **an inline disable needs a same-line rationale** (the kit's every-decision-carries-rationale rule applied to lint). One gotcha: Xcode's script sandbox strips Homebrew from `PATH`, so the phase reports "not installed" until it starts with `export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"`. The full section is in Icarus's `99_SWIFT_SWIFTUI_IDIOMS.md` and can be lifted verbatim by the next project that wants it.
 - **Modified: View composition rules.** Upstream states "do not break views up using computed properties; place them into new View structs instead" and "place view logic into view models or similar, so it can be tested" as flat rules. This file states the same as the default but flags the trade-offs (computed properties OK for trivial one-use subviews; view-models only when extraction enables testing rather than reflexively). Reflects ongoing community debate.
 - **Added: Older Target Adjustments section.** Upstream assumes iOS 26+ unconditionally; the kit recognises that some projects may target older iOS and surfaces which rules still apply.
 - **Added: Source and Freshness section.** Upstream evolves; this file pins the sync date and prescribes a refresh discipline before each new project's use.
@@ -204,5 +248,5 @@ The following choices differ from the upstream `SwiftAgents/AGENTS.md` and are d
 
 ---
 
-*File status: First incorporation from SwiftAgents 2026-05-04. Adapted for kit conventions.*
-*Last updated: 2026-05-04.*
+*File status: First incorporation from SwiftAgents 2026-05-04. Adapted for kit conventions. Codex-experience note and the audit pattern added 2026-09-04; Icarus notes (macOS, SwiftData without CloudKit, SwiftLint adopted) added 2026-09-04; the upstream freshness check has NOT been re-run since 2026-05-04 — do it before the next new project.*
+*Last updated: 2026-09-04.*

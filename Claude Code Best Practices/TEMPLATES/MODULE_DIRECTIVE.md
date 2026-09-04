@@ -31,6 +31,31 @@
 - **The implementation approach:** how it is built
 - **Anti-requirements:** what it does NOT do that might be assumed
 
+### §2.1.1 Rulings — dated and attributed
+
+[When the owner decides something about this requirement, append it here in the
+owner's words, with the date: **RULED (Owner, 2026-08-27):** "…". A reversal is
+appended as a reversal ("reverses the 08-20 rule"), never edited into the original.
+The date is the address other documents cite.]
+
+### THE [NAME] LAW
+
+[Only when a rule has been paid for more than once. One line for the rule, in
+capitals if it recurs as bugs; the cases it was learned from; and the test a reader
+can apply ("name the guard's consumer"). Cite the law by name in code comments that
+enforce it. See `04_DIRECTIVE_WRITING.md` — "Laws".]
+
+**Incident of record — [run or date].** [The numbers, the quote, what it cost,
+each consequence mapped to the rule it broke. Kept beside the law so it cannot be
+argued away later. *(Revised 2026-09-04, Icarus.)*]
+
+### §2.1.2 Superseded — [what fell, and when]
+
+[When a rule in this module is set aside: ~~strike the original text~~, add
+"Superseded (Owner, YYYY-MM-DD)" and what replaced it. Never delete. The same
+convention covers a lifted anti-goal and a carve-out, whose *boundary* is stated
+in the same sentence. *(Revised 2026-09-04, Icarus.)*]
+
 ### §2.2 [Requirement Name]
 
 [Repeat for each core requirement. Use subsections liberally — it is easier to cross-reference §2.3 than "the third paragraph of the requirements section."]
@@ -44,6 +69,17 @@
 ## 3. Architecture / Implementation
 
 [The technical design. Data flows, component relationships, key APIs used. This section is for the *how*, where Section 2 is the *what*. Reference iOS/API versions for anything non-obvious.]
+
+### §3.0 Lessons Inherited — do not re-derive *(Revised 2026-09-04, Icarus)*
+
+[Only for a module that wraps a dependency, a device, or a platform component with
+non-obvious crash-avoidance rules — a predecessor project's, or this one's. Each
+lesson: the rule, the verbatim code block, **why** in enough detail that a reader
+can tell whether it still applies, and the words "do not remove this line". Icarus
+carries seven such lessons at the top of its sensor-SDK directive and four at the
+top of its display-window directive; because the directive is read before any code
+that touches the module, this section does the job of a project skill for a small
+dependency. See `03_DEPENDENCY_FRAMEWORK.md`, the Icarus worked example.]
 
 ### §3.1 [Component or Flow Name]
 

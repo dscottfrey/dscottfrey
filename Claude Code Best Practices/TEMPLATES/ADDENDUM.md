@@ -36,6 +36,12 @@ It is kept separate from the parent directive so the parent can be treated as a 
 - **Edge cases:** what happens in non-ideal conditions
 - **Explicit rejections:** design choices that were considered and ruled out, with rationale
 
+### Rulings
+
+[Dated and attributed, in the owner's words — **RULED (Owner, YYYY-MM-DD):** "…".
+Reversals appended as reversals. If a rule here recurs across features, promote it
+to a named LAW in the parent directive when the addendum is folded back.]
+
 ### Implementation Approach
 
 [Technical design. How is this built? What APIs are used? If the approach is non-obvious, include a code skeleton or data flow description.]

@@ -4,6 +4,29 @@ The procedure for setting up automated build identification in an Xcode project 
 
 This is set up at the start of a new project, not retrofitted later — the kit treats build identification as a foundational practice, like git itself, that goes in before any feature work begins. The implementation is battle-tested: it was refined from a real-world setup, and the bugs found during that setup are captured in "Known Gotchas" below so future projects do not rediscover them.
 
+## Why This Was Worth It *(added 2026-09-04)*
+
+Codex skipped this template and hand-maintained its build number (`CURRENT_PROJECT_VERSION`, date-based `YYYYMMDDNN`). The cost, in order:
+
+- **2026-08-17:** two debugging rounds in one day spent on code that was not in the running binary. The fix that actually held was a one-line stamp written to the log at launch, checked by the assistant before reading anything else in a log.
+- **2026-09-01:** minutes before an archive, the build number still said the previous day's and the stamp still described a feature from two builds earlier. The owner: *"should we be doing that every build so it does not get forgotten?"*
+- **2026-09-03:** the archive on disk carries `2026090201` — the same number as the previous day's TestFlight upload. The archive and the record disagree; which one App Store Connect holds is a question, not a fact.
+
+Install this on day one. And extend it: the log stamp should carry `BuildInfo.gitSHA` so a tester's log names the exact commit, not a description someone typed.
+
+### TestFlight note
+
+App Store Connect **rejects** an upload whose `CFBundleVersion` duplicates one already uploaded for the same marketing version. But Xcode's distribution flow offers **"Manage Version and Build Number"**, which can bump the number *during upload* — so the archive on disk and the build App Store Connect holds can disagree, and neither the `.xcarchive`'s `Info.plist` nor the project file tells you what shipped. **When confirming what testers have, read App Store Connect, not the archive.** The Release-only script phase below removes the ambiguity: the number is stamped into the built product before the archive exists, and the upload option has nothing to change.
+
+The upload itself stays a hand step (`TEMPLATES/RELEASE_CHECKLIST.md`); the Codex owner ruled it must never be automated.
+
+### When it *was* installed on day one *(Revised 2026-09-04, Icarus)*
+
+Icarus followed this template on its first day (2026-05-19, macOS, the `orderFrontStandardAboutPanel` route) and it has worked without incident: every build the lab has ever run is named in a handoff or a report by its stamp. Two additions from four months of use:
+
+- **The `+` marker is a detector, not a preventer.** A release went to the lab stamped `7641350+` — the previous commit's SHA, dirty — because nobody said "commit first" before the build (2026-07-31). The stamp made the problem *visible*; only a habit prevents it. See `02` "Every Build Is Identifiable" and section F of `TEMPLATES/RELEASE_CHECKLIST.md`: say COMMIT FIRST, and read the About panel back (no `+`) before the build leaves the machine.
+- **Use the About panel for other provenance.** When the app began copying its data store forward under a new versioned filename on upgrade, the panel gained a line naming which store file this launch opened and what it was copied from — the first question of any post-upgrade support session.
+
 ---
 
 ## What You Are Setting Up
